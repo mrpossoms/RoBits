@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 #include <GLFW/glfw3.h>
 #include "renderer.h"
 #include "geometry/line.h"

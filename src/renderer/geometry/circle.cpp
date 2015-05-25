@@ -26,8 +26,10 @@ float Circle::intersects(Geometry* geo, vec2 normal)
 
 	if(line){ // line circle intersection
 		ray2 ray = {
-			.p = { line->vertices[0][0], line->vertices[0][1] },
-			.n = {
+			// position
+			{ line->vertices[0][0], line->vertices[0][1] },
+			// direction
+			{
 				line->vertices[1][0] - line->vertices[0][0],
 				line->vertices[1][1] - line->vertices[0][1]
 			}

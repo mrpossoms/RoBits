@@ -1,8 +1,8 @@
 #pragma once
 
 #include "geometry.h"
-#include "geometry/Line.h"
-#include "geometry/Rectangle.h"
+#include "geometry/line.h"
+#include "geometry/rectangle.h"
 
 #include <sys/types.h>
 #include <vector>

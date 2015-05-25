@@ -1,4 +1,5 @@
 #include "rectangle.h"
+#include <strings.h>
 #include <iostream>
 
 using namespace std;
