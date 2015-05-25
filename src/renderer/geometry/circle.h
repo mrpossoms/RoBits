@@ -9,10 +9,12 @@ public:
 	Circle(vec2 position, float radius, uint32_t color);
 	~Circle();
 
-	int intersects(Geometry* geo, vec2 normal);
-	int intersectedByRay(ray2 ray, vec2 intersect);
+	float intersects(Geometry* geo, vec2 normal);
+	float intersectedByRay(ray2 ray, vec2 intersect);
 
 	void draw(mat4x4 viewProjection);
+
+	void setColor(uint32_t color);
 
 	vec4  position;
 	float radius;

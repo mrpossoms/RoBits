@@ -9,12 +9,13 @@ public:
 	Line(vec2 v1, vec2 v2, uint32_t color);
 	~Line();
 
-	int intersects(Geometry* geo, vec2 normal);
-	int intersectedByRay(ray2 ray, vec2 intersect);
+	float intersects(Geometry* geo, vec2 normal);
+	float intersectedByRay(ray2 ray, vec2 intersect);
 
 	void draw(mat4x4 viewProjection);
+	void setColor(uint32_t color);
 
-private:
 	vec4 vertices[2];
+private:
 	vec4 color;
 };

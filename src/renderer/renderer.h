@@ -1,6 +1,7 @@
 #pragma once
 
 #include "linalg.h"
+#include "viewer.h"
 
 class Renderer
 {

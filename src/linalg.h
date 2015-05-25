@@ -50,6 +50,11 @@ static inline void vec2_lerp(vec2 r, vec2 start, vec2 finish, GLfloat t)
     r[1] = omt * start[1] + t * finish[1];
 }
 
+static inline float vec2_len(vec2 v)
+{
+	return sqrtf(v[0] * v[0] + v[1] * v[1]);
+}
+
 /*
  y = m1x + b1	y = m2x + b2
  
@@ -73,6 +78,11 @@ static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2){
 	sy = (itrsec[1] - ray.p[1]) / ray.n[1];
     
 	return (bet(v1[0], itrsec[0], v2[0]) || bet(v1[1], itrsec[1], v2[1])) && (sx >= 0 || sy >= 0);
+}
+
+static inline int vec2_ray_circle(vec2 intersect, ray2 ray, vec2 position, float radius)
+{
+	return 0;
 }
 
 typedef GLfloat vec3[3];

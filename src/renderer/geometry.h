@@ -13,10 +13,15 @@ class Geometry;
 class Geometry
 {
 public:
-	virtual int intersects(Geometry* geo, vec2 normal) = 0;
-	virtual int intersectedByRay(ray2 ray, vec2 intersect) = 0;
+	// interaction / simulation
+	virtual float intersects(Geometry* geo, vec2 normal) = 0;
+	virtual float intersectedByRay(ray2 ray, vec2 intersect) = 0;
 
+	// rendering and visuals
 	virtual void draw(mat4x4 viewProjection) = 0;
+	virtual void setColor(uint32_t color) = 0;
+
+	int tag;
 protected:
 
 };

@@ -1,4 +1,5 @@
 #include "circle.h"
+#include "line.h"
 #include <iostream>
 
 using namespace std;
@@ -19,13 +20,52 @@ Circle::~Circle()
 	
 }
 
-int Circle::intersects(Geometry* geo, vec2 normal)
+float Circle::intersects(Geometry* geo, vec2 normal)
 {
+	Line* line = dynamic_cast<Line*>(geo);
+
+	if(line){ // line circle intersection
+		ray2 ray = {
+			.p = { line->vertices[0][0], line->vertices[0][1] },
+			.n = {
+				line->vertices[1][0] - line->vertices[0][0],
+				line->vertices[1][1] - line->vertices[0][1]
+			}
+		};
+		vec2 intersect = {};
+
+		return this->intersectedByRay(ray, intersect);
+	}
+
+
 	return 0;
 }
 
-int Circle::intersectedByRay(ray2 ray, vec2 intersect)
+float Circle::intersectedByRay(ray2 ray, vec2 intersect)
 {
+	float px = ray.p[0] - position[0], py = ray.p[1] - position[1];
+	float nx = ray.n[0], ny = ray.n[1];
+
+	float a = nx * nx + ny * ny;
+	float b = 2 * (px * nx + py * ny);
+	float c = px * px + py * py - radius * radius;
+
+	float rad = sqrt(b * b - 4 * a * c);
+	float _2a  = 2 * a;
+	float t1 = (-b + rad) / _2a;
+	float t2 = (-b - rad) / _2a;
+
+	if(!isnan(t1) && t1 < t2){
+		intersect[0] = ray.p[0] + ray.n[0] * t1;
+		intersect[1] = ray.p[1] + ray.n[1] * t1;
+		return t1;
+	}
+	else if(!isnan(t2)){
+		intersect[0] = ray.p[0] + ray.n[0] * t2;
+		intersect[1] = ray.p[1] + ray.n[1] * t2;	
+		return t2;
+	}
+
 	return 0;
 }
 
@@ -53,4 +93,9 @@ void Circle::draw(mat4x4 viewProjection)
 	}
 
 	glEnd();
+}
+
+void Circle::setColor(uint32_t col)
+{
+	INT_TO_VEC4(col, color);
 }

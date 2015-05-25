@@ -20,12 +20,12 @@ Line::~Line()
 	
 }
 
-int Line::intersects(Geometry* geo, vec2 normal)
+float Line::intersects(Geometry* geo, vec2 normal)
 {
 	return 0;
 }
 
-int Line::intersectedByRay(ray2 ray, vec2 intersect)
+float Line::intersectedByRay(ray2 ray, vec2 intersect)
 {
 	return vec2_ray_line(intersect, ray, vertices[0], vertices[1]);
 }
@@ -44,4 +44,9 @@ void Line::draw(mat4x4 viewProjection)
 	glVertex2f(temp[0], temp[1]);
 
 	glEnd();
+}
+
+void Line::setColor(uint32_t col)
+{
+	INT_TO_VEC4(col, color);
 }

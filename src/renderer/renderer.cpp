@@ -17,6 +17,11 @@ Renderer::Renderer(vec2 windowSize)
 	isRendering = 1;
 
 	glfwMakeContextCurrent(window);
+
+	// setup input events
+	glfwSetCursorPosCallback(window, vwrOnCursorMove);
+	glfwSetMouseButtonCallback(window, vwrOnClick);
+	glfwSetScrollCallback(window, vwrOnScroll);
 }
 
 Renderer::~Renderer()
@@ -40,7 +45,7 @@ float Renderer::aspectRatio()
 
 int Renderer::shouldDraw()
 {
-	if(!isRendering) return 0;
+	if(!isRendering || glfwWindowShouldClose(window)) return 0;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	return 1;
