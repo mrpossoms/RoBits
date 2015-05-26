@@ -1,6 +1,7 @@
 #include "rectangle.h"
 #include <strings.h>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -78,10 +79,14 @@ void Rectangle::setColor(uint32_t col)
 	INT_TO_VEC4(col, color);
 }
 
-void Rectangle::subdivide(Rectangle children[2], float p, int isVertical)
+void Rectangle::subdivide(
+	Rectangle children[2],
+	vec4 boundryPoints[2],
+	float p,
+	int isVertical)
 {
-	vec4 *from1, *to1, interp1;
-	vec4 *from2, *to2, interp2;
+	vec4 *from1, *to1;
+	vec4 *from2, *to2;
 
 	if(isVertical){
 		from1 = vertices + 3, to1 = vertices;
@@ -92,23 +97,29 @@ void Rectangle::subdivide(Rectangle children[2], float p, int isVertical)
 		from2 = vertices + 3, to2 = vertices + 2;
 	}
 
-	vec4_lerp(interp1, *from1, *to1, p);
-	vec4_lerp(interp2, *from2, *to2, p);
+	vec4_lerp(boundryPoints[0], *from1, *to1, p);
+	vec4_lerp(boundryPoints[1], *from2, *to2, p);
 
 	if(isVertical){
-		Rectangle r1(interp1, vertices[2], 0xFF0000FF);
-		Rectangle r2(vertices[0], interp2, 0xFF0000FF);
+		Rectangle r1(boundryPoints[0], vertices[2], 0xFF0000FF);
+		Rectangle r2(vertices[0], boundryPoints[1], 0xFF0000FF);
 
 		children[0] = r1;
 		children[1] = r2;
 	}
 	else{
-		Rectangle r1(vertices[0], interp2, 0xFF0000FF);
-		Rectangle r2(interp1, vertices[2], 0xFF0000FF);
+		Rectangle r1(vertices[0], boundryPoints[1], 0xFF0000FF);
+		Rectangle r2(boundryPoints[0], vertices[2], 0xFF0000FF);
 
 		children[0] = r1;
 		children[1] = r2;
 	}
+}
+
+void Rectangle::subdivide(Rectangle children[2], float p, int isVertical)
+{
+	vec4 boundryPoints[2];
+	subdivide(children, boundryPoints, p, isVertical);
 }
 
 float Rectangle::area()
@@ -117,6 +128,22 @@ float Rectangle::area()
 	vec4_sub(delta, vertices[0], vertices[2]);
 
 	return delta[0] * delta[1];
+}
+
+float Rectangle::width()
+{
+	vec4 delta = {};
+	vec4_sub(delta, vertices[0], vertices[2]);
+
+	return fabs(delta[0]);
+}
+
+float Rectangle::height()
+{
+	vec4 delta = {};
+	vec4_sub(delta, vertices[0], vertices[2]);
+
+	return fabs(delta[1]);
 }
 
 int Rectangle::contains(float x, float y){
@@ -142,4 +169,23 @@ int Rectangle::contains(vec2 position){
 	if(position[1] >= ul[1] && position[1] <= lr[1])    return 1;
 
 	return 0;
+}
+
+void Rectangle::emitLines(Line sides[4])
+{
+	// top
+	vec4_set(sides[0].vertices[0], vertices[0]);
+	vec4_set(sides[0].vertices[1], vertices[1]);
+
+	// right
+	vec4_set(sides[1].vertices[0], vertices[1]);
+	vec4_set(sides[1].vertices[1], vertices[2]);
+
+	// bottom
+	vec4_set(sides[2].vertices[0], vertices[2]);
+	vec4_set(sides[2].vertices[1], vertices[3]);
+
+	// left
+	vec4_set(sides[3].vertices[0], vertices[3]);
+	vec4_set(sides[3].vertices[1], vertices[0]);
 }

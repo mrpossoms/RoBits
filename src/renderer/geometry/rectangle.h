@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geometry.h"
+#include "geometry/line.h"
 #include <sys/types.h>
 
 #define RECT_SUB_HORIZONTAL 0
@@ -19,11 +20,18 @@ public:
 	void draw(mat4x4 viewProjection);
 	void setColor(uint32_t color);
 
+
 	void subdivide(Rectangle children[2], float p, int isVertical);
+	void subdivide(Rectangle children[2], vec4 boundryPoints[2], float p, int isVertical);
+
 	float area();
+	float width();
+	float height();
 
 	int contains(float x, float y);
 	int contains(vec2 position);
+
+	void emitLines(Line sides[4]);
 
 	vec4 vertices[4];
 private:

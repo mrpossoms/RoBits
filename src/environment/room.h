@@ -23,7 +23,8 @@ public:
 	void setColor(uint32_t color);
 
 private:
-	void subdivide(Rectangle* bounds, int recurse);
+	void subdivide(Rectangle* bounds, int recurse, vec2 required[2]);
+	void trace();
 
 	vector<Geometry*> features;
 	vector<Rectangle*> regions;
