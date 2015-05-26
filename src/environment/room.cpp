@@ -20,6 +20,34 @@ Room::~Room()
 
 }
 
+vector<Rectangle*>* Room::neighborsOf(Rectangle* rectangle)
+{
+	vector<Rectangle*>* n = new vector<Rectangle*>();
+
+	for(int i = regions.size(); i--;){
+		if(rectangle == regions[i]) continue;
+
+		for(int j = 4; j--;){
+			if(regions[i]->contains(rectangle->vertices[j])){
+				n->push_back(regions[i]);
+			}
+		}
+	}
+
+	return n;
+}
+
+void Room::trace()
+{
+	for(int i = regions.size(); i--;){
+		vector<Rectangle*>* neighbors = neighborsOf(regions[i]);
+
+		delete neighbors;		
+	}
+
+ 
+}
+
 void Room::subdivide(Rectangle* bounds, int recurse)
 {
 	Rectangle* children = new Rectangle[2];

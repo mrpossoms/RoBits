@@ -21,7 +21,7 @@ public:
 	virtual void draw(mat4x4 viewProjection) = 0;
 	virtual void setColor(uint32_t color) = 0;
 
-	int tag;
+	uint32_t tag;
 protected:
 
 };

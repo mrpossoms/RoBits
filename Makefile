@@ -2,8 +2,7 @@ UNAME_S := $(shell uname -s)
 
 NAME=RoBits
 EDITOR=
-CC=g++
-CFLAGS=-Wint-to-pointer-cast -std=gnu++0x -fpermissive 
+CC=g++ 
 SRC=./src/*.cpp ./src/renderer/*.cpp ./src/renderer/geometry/*.cpp ./src/environment/*.cpp
 INC=-I./include -I./src -I./src/renderer -I /usr/local/include -I./src/environment
 DST=./lib
@@ -11,9 +10,10 @@ DST=./lib
 
 ifeq ($(UNAME_S),Linux)
 	LINK=-lGL -lGLU -lglut -lglfw3 -lm -lXrandr -lXi -lX11
-
+	CFLAGS=-Wint-to-pointer-cast -std=gnu++0x -fpermissive
 else
 	LINK=-lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+	CFLAGS=-Wint-to-pointer-cast
 endif
 
 LIB = -L /usr/local/lib/

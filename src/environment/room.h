@@ -23,6 +23,8 @@ public:
 	void setColor(uint32_t color);
 
 private:
+	vector<Rectangle*>* neighborsOf(Rectangle* rectangle);
+	void trace();
 	void subdivide(Rectangle* bounds, int recurse);
 
 	vector<Geometry*> features;
