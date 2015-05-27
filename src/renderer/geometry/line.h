@@ -6,6 +6,7 @@
 class Line : public Geometry
 {
 public:
+	Line();
 	Line(vec2 v1, vec2 v2, uint32_t color);
 	~Line();
 

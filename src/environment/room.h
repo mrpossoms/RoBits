@@ -24,8 +24,8 @@ public:
 
 private:
 	vector<Rectangle*>* neighborsOf(Rectangle* rectangle);
+	void subdivide(Rectangle* bounds, int recurse, vec2 required[2]);
 	void trace();
-	void subdivide(Rectangle* bounds, int recurse);
 
 	vector<Geometry*> features;
 	vector<Rectangle*> regions;

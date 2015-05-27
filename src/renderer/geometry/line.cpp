@@ -3,6 +3,13 @@
 
 using namespace std;
 
+Line::Line()
+{
+	vertices[0][3] = vertices[1][3] = 1.0f;
+	INT_TO_VEC4(0xFFFFFFFF, color);
+}
+
+
 Line::Line(vec2 v1, vec2 v2, uint32_t col)
 {
 	vec2_set(vertices[0], v1);

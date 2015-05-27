@@ -12,7 +12,8 @@ float subRand()
 
 Room::Room(Rectangle bounds, int depth)
 {
-	subdivide(&bounds, depth);
+	subdivide(&bounds, depth, NULL);
+	trace();
 }
 
 Room::~Room()
@@ -42,36 +43,53 @@ void Room::trace()
 	for(int i = regions.size(); i--;){
 		vector<Rectangle*>* neighbors = neighborsOf(regions[i]);
 
+		printf("%lx -> { ", (unsigned long)regions[i]);
+		for(int j = neighbors->size(); j--;){
+			printf("%lx ", (unsigned long)(*neighbors)[j]);
+		}printf("}\n");
+
 		delete neighbors;		
 	}
 
  
 }
 
-void Room::subdivide(Rectangle* bounds, int recurse)
+void Room::subdivide(Rectangle* bounds, int recurse, vec2 required[2])
 {
 	Rectangle* children = new Rectangle[2];
 	Rectangle *larger, *smaller;
-	bounds->subdivide(children, subRand(), FIDY_FIDY);
+	vec4 n[2];
+	vec2 newPoints[2];
+
+	bounds->subdivide(children, n, subRand(), FIDY_FIDY);
+
+	vec2_set(newPoints[0], n[0]);
+	vec2_set(newPoints[1], n[1]);
 
 	if(children[0].area() > children[1].area()){
-		larger  = children + 0;
-		smaller = children + 1;
+		larger = children + 0, smaller = children + 1;
 	}
 	else{
-		larger  = children + 1;
-		smaller = children + 0;		
+		larger = children + 1, smaller = children + 0;
 	}
 
-	if(!recurse){
-		regions.push_back(larger);
+	if(recurse){
+		subdivide(larger,  recurse - 1, newPoints);
+		subdivide(smaller, 0,           newPoints);
 	}
-	else
-	{
-		subdivide(larger, recurse - 1);
-		subdivide(smaller, 0);
-	}
+	else{
+		for(int i = 2; i--;)
+			if(larger->contains(required[i])){
+				regions.push_back(larger);
+				return;
+			}
 
+		for(int i = 2; i--;)
+			if(smaller->contains(required[i])){
+				regions.push_back(smaller);
+				return;
+			}
+	}
 }
 
 float Room::intersects(Geometry* geo, vec2 normal)
