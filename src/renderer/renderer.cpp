@@ -22,6 +22,11 @@ Renderer::Renderer(vec2 windowSize)
 	glfwSetCursorPosCallback(window, vwrOnCursorMove);
 	glfwSetMouseButtonCallback(window, vwrOnClick);
 	glfwSetScrollCallback(window, vwrOnScroll);
+
+	// setup inital renderer state
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
 }
 
 Renderer::~Renderer()

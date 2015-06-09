@@ -28,5 +28,6 @@ private:
 	void trace();
 
 	vector<Geometry*> features;
+	vector<Geometry*> perimeter;
 	vector<Rectangle*> regions;
 };

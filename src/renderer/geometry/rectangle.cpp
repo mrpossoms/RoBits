@@ -58,7 +58,8 @@ void Rectangle::draw(mat4x4 viewProjection)
 {
 	vec4 temp;
 
-	glBegin(GL_LINE_LOOP);
+	//glBegin(GL_LINE_LOOP);
+	glBegin(GL_QUADS);
 
 	glColor4f(color[0], color[1], color[2], color[3]);
 

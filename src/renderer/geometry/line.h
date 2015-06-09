@@ -13,6 +13,10 @@ public:
 	float intersects(Geometry* geo, vec2 normal);
 	float intersectedByRay(ray2 ray, vec2 intersect);
 
+	int isOverlapping(Line* line);
+
+	void trim(Line line, Line newLines[2]);
+
 	void draw(mat4x4 viewProjection);
 	void setColor(uint32_t color);
 

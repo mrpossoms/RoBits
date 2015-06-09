@@ -43,15 +43,17 @@ void Room::trace()
 	for(int i = regions.size(); i--;){
 		vector<Rectangle*>* neighbors = neighborsOf(regions[i]);
 
-		printf("%lx -> { ", (unsigned long)regions[i]);
-		for(int j = neighbors->size(); j--;){
-			printf("%lx ", (unsigned long)(*neighbors)[j]);
-		}printf("}\n");
+		// printf("%lx -> { ", (unsigned long)regions[i]);
+		// for(int j = neighbors->size(); j--;){
+		// 	printf("%lx ", (unsigned long)(*neighbors)[j]);
+		// }printf("}\n");
+
+		
 
 		delete neighbors;		
 	}
 
- 
+	 
 }
 
 void Room::subdivide(Rectangle* bounds, int recurse, vec2 required[2])
@@ -105,8 +107,8 @@ float Room::intersectedByRay(ray2 ray, vec2 intersect)
 
 void Room::draw(mat4x4 viewProjection)
 {
-	for(int i = regions.size(); i--;){
-		regions[i]->draw(viewProjection);
+	for(int i = perimeter.size(); i--;){
+		perimeter[i]->draw(viewProjection);
 	}
 }
 
