@@ -43,7 +43,7 @@ float Rectangle::intersectedByRay(ray2 ray, vec2 intersect)
 	float t = 100000000;
 
 	for(int i = 3; i--;){
-		if(vec2_ray_line(intersect, ray, vertices[i], vertices[i+1])){
+		if(vec2_ray_line(intersect, ray, vertices[i], vertices[i+1], &t)){
 			vec2 delta; vec2_sub(delta, intersect, ray.p);
 			float temp = vec2_len(delta);
 
@@ -58,8 +58,9 @@ void Rectangle::draw(mat4x4 viewProjection)
 {
 	vec4 temp;
 
-	//glBegin(GL_LINE_LOOP);
-	glBegin(GL_QUADS);
+	glLineWidth(1.0);
+	glBegin(GL_LINE_LOOP);
+	// glBegin(GL_QUADS);
 
 	glColor4f(color[0], color[1], color[2], color[3]);
 
@@ -102,15 +103,15 @@ void Rectangle::subdivide(
 	vec4_lerp(boundryPoints[1], *from2, *to2, p);
 
 	if(isVertical){
-		Rectangle r1(boundryPoints[0], vertices[2], 0xFF0000FF);
-		Rectangle r2(vertices[0], boundryPoints[1], 0xFF0000FF);
+		Rectangle r1(boundryPoints[0], vertices[2], 0x555555FF);
+		Rectangle r2(vertices[0], boundryPoints[1], 0x555555FF);
 
 		children[0] = r1;
 		children[1] = r2;
 	}
 	else{
-		Rectangle r1(vertices[0], boundryPoints[1], 0xFF0000FF);
-		Rectangle r2(boundryPoints[0], vertices[2], 0xFF0000FF);
+		Rectangle r1(vertices[0], boundryPoints[1], 0x555555FF);
+		Rectangle r2(boundryPoints[0], vertices[2], 0x555555FF);
 
 		children[0] = r1;
 		children[1] = r2;
@@ -155,6 +156,7 @@ int Rectangle::contains(float x, float y){
 int Rectangle::contains(vec2 position){
 	vec2 ul = { vertices[0][0], vertices[0][1] };
 	vec3 lr = { vertices[1][0], vertices[1][1] };
+	const float e = FLT_EPSILON;
 
 	for(int i = 4; i--;){
 		vec4 v;
@@ -166,8 +168,8 @@ int Rectangle::contains(vec2 position){
 		lr[1] = lr[1] > v[1] ? lr[1] : v[1];
 	}
 
-	if(!(position[0] >= ul[0] && position[0] <= lr[0])) return 0;
-	if(position[1] >= ul[1] && position[1] <= lr[1])    return 1;
+	if(!(position[0] >= ul[0] - e && position[0] <= lr[0] + e)) return 0;
+	if(position[1] >= ul[1] - e && position[1] <= lr[1] + e)    return 1;
 
 	return 0;
 }

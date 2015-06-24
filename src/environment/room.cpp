@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <iostream>
 
-#define RAND_F ((rand() % 1024) / 1024.0)
 #define FIDY_FIDY (rand() % 2)
 
 float subRand()
 {
-	return RAND_F * 0.4 + 0.6;
+	return RAND_F * 0.4 + 0.3;
 }
 
 Room::Room(Rectangle bounds, int depth)
@@ -29,8 +28,9 @@ vector<Rectangle*>* Room::neighborsOf(Rectangle* rectangle)
 		if(rectangle == regions[i]) continue;
 
 		for(int j = 4; j--;){
-			if(regions[i]->contains(rectangle->vertices[j])){
+			if(regions[i]->contains(rectangle->vertices[j]) || rectangle->contains(regions[i]->vertices[j])){
 				n->push_back(regions[i]);
+				break;
 			}
 		}
 	}
@@ -41,14 +41,49 @@ vector<Rectangle*>* Room::neighborsOf(Rectangle* rectangle)
 void Room::trace()
 {
 	for(int i = regions.size(); i--;){
-		vector<Rectangle*>* neighbors = neighborsOf(regions[i]);
+		perimeter.push_back(regions[i]);
+	}
 
-		// printf("%lx -> { ", (unsigned long)regions[i]);
-		// for(int j = neighbors->size(); j--;){
-		// 	printf("%lx ", (unsigned long)(*neighbors)[j]);
-		// }printf("}\n");
+	for(int i = regions.size(); i--;){
+		Rectangle* me = regions[i];
+		vector<Rectangle*>* neighbors = neighborsOf(me);
+		Line lines[4];
+		Line myLines[4];
 
-		
+		me->emitLines(myLines);
+
+		printf("%lx -> { ", (unsigned long)regions[i]);
+		for(int j = neighbors->size(); j--;){
+			printf("%lx ", (unsigned long)(*neighbors)[j]);
+		}printf("}\n");
+
+		for(int k = 4, trimmed = 0; k--;){
+				
+			// printf("%lx -> { ", (unsigned long)regions[i]);
+			for(int j = neighbors->size(); j--;){
+				Rectangle* neighbor = (*neighbors)[j];
+				if(neighbor == me) continue;
+
+				neighbor->emitLines(lines);
+				
+				for(int l = 4; l--;){
+					Line newLines[2];
+					if(myLines[k].isOverlapping(lines + l)){
+						// myLines[k].trim(lines[l], newLines);
+						// perimeter.push_back(new Line(newLines[0]));
+						// perimeter.push_back(new Line(newLines[1]));
+						perimeter.push_back(new Line(myLines[k].vertices[0], myLines[k].vertices[1], 0x0000FFFF));
+						trimmed = 1;
+						// break;
+					}
+				}
+			}
+			// 	printf("%lx ", (unsigned long)(*neighbors)[j]);
+				
+			if(!trimmed){
+				// perimeter.push_back(new Line(myLines[k]));
+			}
+		}
 
 		delete neighbors;		
 	}
@@ -63,7 +98,10 @@ void Room::subdivide(Rectangle* bounds, int recurse, vec2 required[2])
 	vec4 n[2];
 	vec2 newPoints[2];
 
-	bounds->subdivide(children, n, subRand(), FIDY_FIDY);
+	float p = subRand();
+	printf("Subdivide p = %f\n", p);
+
+	bounds->subdivide(children, n, p, FIDY_FIDY);
 
 	vec2_set(newPoints[0], n[0]);
 	vec2_set(newPoints[1], n[1]);

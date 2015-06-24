@@ -12,9 +12,12 @@
 #include <GLFW/glfw3.h>
 #include <math.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <cfloat>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b));
 #define MAX(a, b) ((a) > (b) ? (a) : (b));
+#define RAND_F ((rand() % 1024) / 1024.0)
 
 static inline int bet(GLfloat a, GLfloat m, GLfloat b){
 	return fabs(a - m) + fabs(m - b) == fabs(a - b);
@@ -44,10 +47,19 @@ static inline void vec2_rectangle_min_max(vec2 min, vec2 max, vec2 verts[], int 
 }
 
 static inline int vec2_rectangle_contains_point(vec2 min, vec2 max, vec2 p){
-	printf("%f <= %f && %f <= %f == %d\n", min[0], p[0], p[0], max[0], min[0] <= p[0] && p[0] <= max[0]);
-	printf("%f <= %f && %f <= %f == %d\n", min[1], p[1], p[1], max[1], min[1] <= p[1] && p[1] <= max[1]);
+	float e = 1e-6;
+	// printf("%f <= %f && %f <= %f == %d\n", min[0], p[0], p[0], max[0], min[0] <= p[0] && p[0] <= max[0]);
+	// printf("%f <= %f && %f <= %f == %d\n", min[1], p[1], p[1], max[1], min[1] <= p[1] && p[1] <= max[1]);
 
-	return min[0] <= p[0] && p[0] <= max[0] && min[1] <= p[1] && p[1] <= max[1];
+	return min[0] - e < p[0] && p[0] < max[0] + e && min[1] - e < p[1] && p[1] < max[1] + e;
+}
+
+static inline int vec2_rectangle_or_touches_contains_point(vec2 min, vec2 max, vec2 p){
+	float e = 1e-6;
+	// printf("%f <= %f && %f <= %f == %d\n", min[0], p[0], p[0], max[0], min[0] <= p[0] && p[0] <= max[0]);
+	// printf("%f <= %f && %f <= %f == %d\n", min[1], p[1], p[1], max[1], min[1] <= p[1] && p[1] <= max[1]);
+
+	return min[0] - e <= p[0] && p[0] <= max[0] + e && min[1] - e <= p[1] && p[1] <= max[1] + e;
 }
 
 static inline void vec2_add(vec2 r, vec2 a, vec2 b){
@@ -94,96 +106,158 @@ static inline void vec2_norm(vec2 r, vec2 v)
 	vec2_scale(r, v, 1.0 / vec2_len(v));
 }
 
-/*
- y = m1x + b1	y = m2x + b2
- 
- m1x + b1 = m2x + b2
- m1x = m2x + b2 - b1
- x(m1 - m2) = b2 - b1
- x = (b2 - b1) / (m1 - m2)
- */
-static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2){
-	GLfloat m_ray  = ray.n[1] / ray.n[0];
-	GLfloat m_line_rise = v2[1] - v1[1], m_line_run = v2[0] - v1[0];
-	GLfloat m_line = (m_line_rise) / (m_line_run == 0 ? 0.1f : m_line_run);
-	GLfloat yint_ray = (-ray.p[0] * m_ray) + ray.p[1], yint_line = (-v1[0] * m_line) + v1[1];
-	GLfloat x = (yint_line - yint_ray) / (m_ray - m_line);
-	GLfloat sx, sy;
-    
-	itrsec[0] = x;
-	itrsec[1] = x * m_ray + yint_ray;
-    
-	sx = (itrsec[0] - ray.p[0]) / ray.n[0];
-	sy = (itrsec[1] - ray.p[1]) / ray.n[1];
-    
-	return (bet(v1[0], itrsec[0], v2[0]) || bet(v1[1], itrsec[1], v2[1])) && (sx >= 0 || sy >= 0);
-}
-
 #define vec2_print(v){\
 	printf(#v " = {%f, %f}\n", v[0], v[1]);\
 }\
 
-static inline int vec2_ray_line2(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
+static inline int vec2_point_on_ray(ray2 r, vec2 p, float* t){
+	float a = vec2_dot(r.n, r.n);
+	float b = 2 * (vec2_dot(r.p, r.p) - vec2_dot(p, r.n));
+	float c = vec2_dot(r.p, r.p) + vec2_dot(p, p) + 2 * vec2_dot(r.p, p);
+
+	printf("vec2_point_on_ray(): a = %f\n", a);
+	printf("vec2_point_on_ray(): b = %f\n", b);
+	printf("vec2_point_on_ray(): c = %f\n", c);
+
+	const float innerRad = b * b - 4 * a * c;
+	printf("vec2_point_on_ray(): innerRad = %f\n", innerRad);
+	const float rad = sqrtf(fabs(innerRad) > 0.01 ? innerRad : 0);
+	const float _2a = 2 * a;
+	float ts[2] = { -(b + rad) / _2a, -(b - rad) / _2a };
+
+	printf("vec2_point_on_ray(): rad = %f\n", rad);
+
+	char buf[128] = {};
+	sprintf(buf, "ts[0] = %f, ts[1] = %f\n", ts[0], ts[1]);
+	write(1, buf, 128);
+
+	*t = -1;
+
+	for(int i = 2; i--;){
+		if(ts[i] >= 0 && ts[i] <= 1){
+			*t = ts[i];
+			break;
+		}
+	}
+
+	// no solution
+	if(*t < 0) return 0;
+
+	return 1;
+}
+
+static inline void vec2_ray_ray(vec2 intersect, ray2 r1, ray2 r2, float* t)
 {
-	printf("\nray = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", ray.p[0], ray.p[1], ray.n[0], ray.n[1]);
-	printf("line = {%0.3f, %0.3f} --- {%0.3f, %0.3f}\n", v1[0], v1[1], v2[0], v2[1]);
+	printf("\nr1 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r1.p[0], r1.p[1], r1.n[0], r1.n[1]);
+	printf("r2 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r2.p[0], r2.p[1], r2.n[0], r2.n[1]);
 
-	vec2 lineNorm = { v1[1] - v2[1], v2[0] - v1[0] };
-	vec2 lineCentroid = { v1[0] + v2[0], v2[1] + v1[1] };
-	vec2 rayPos = { ray.p[0], ray.p[1] };
-	float ldr = 0;
+	vec2 rayPos;
+	vec2 r2n = { r2.n[1], -r2.n[0] };
+	float ldr = 0, ldp = 0;
 
-	vec2_scale(lineCentroid, lineCentroid, 0.5);
+	//vec2_print(lineCentroid);
+	vec2_sub(rayPos, r1.p, r2.p);
 
-	vec2_print(lineCentroid);
+	ldp = -vec2_dot(r2n, rayPos);
+	ldr = vec2_dot(r2n, r1.n);
 
-	vec2_norm(lineNorm, lineNorm);
-	vec2_sub(rayPos, rayPos, lineCentroid);
-
-	ldr = vec2_dot(lineNorm, ray.n);
+	*t = -1;
 
 	if(ldr == 0){
-		// do something else...
-		float d1 = vec2_dist(ray.p, v1);
-		float d2 = vec2_dist(ray.p, v2);
-		vec2 dlt;
+		printf("rutro\n");
 
-		if(d1 < d2){
-			dlt[0] = ray.p[0] - v1[0];
-			dlt[1] = ray.p[1] - v1[1];
+		vec2 delta = { r1.p[0] - r2.p[0], r1.p[1] - r2.p[1]};
+		float d = vec2_dot(delta, r2n);
+		printf("d = %f\n", d);
+		if(d == 0){
+			vec2 r2End = { r2.p[0] + r2.n[0], r2.p[1] + r2.n[1] };
+
+			// begining of r1 exists on r2
+			if(vec2_point_on_ray(r2, r1.p, t) && (*t >= 0 && *t <= 1)){
+				*t = 0;
+			}
+			else{
+				vec2_point_on_ray(r1, r2End, t);
+			}
+
 		}
-		else{
-			dlt[0] = ray.p[0] - v2[0];
-			dlt[1] = ray.p[1] - v2[1];
-		}
-
-		vec2_print(dlt);
-
-		float a = (ray.n[0] + ray.n[1]) * (ray.n[0] + ray.n[1]);
-		float b = 2 * vec2_dot(dlt, ray.n);
-		float c = dlt[0] * dlt[0] + dlt[1] * dlt[1];
-		float rad = sqrtf(b * b - 4 * a * c);
-
-		float t1 = MAX((-b + rad) / (2 * a), 0);
-		float t2 = MAX((-b - rad) / (2 * a), 0); 
-
-		*t = t1 < t2 ? t1 : t2;
-
-		printf("t1 = %f t2 = %f\n", t1, t2);
-
-		printf("Co-linear\n");
 	}
 	else{
-		*t = -vec2_dot(lineNorm, rayPos) / ldr;
-		printf("Not Co-linear\n");
+		*t = ldp / ldr;	
 	}
 
-	vec2_scale(itrsec, ray.n, *t);
-	vec2_add(itrsec, itrsec, ray.p);
+	vec2_scale(intersect, r1.n, *t);
+	vec2_add(intersect, intersect, r1.p);
+}
 
-	vec2_print(itrsec);
+static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
+{
+	ray2 r1 = {
+		.p = { v1[0], v1[1] },
+		.n = { v2[0] - v1[0], v2[1] - v1[1] }
+	};
 
-	return vec2_rectangle_contains_point(v1, v2, itrsec) || vec2_rectangle_contains_point(v2, v1, itrsec);
+	ray2 r2 = {
+		.p = { v2[0], v2[1] },
+		.n = { v1[0] - v2[0], v1[1] - v2[1] }
+	};
+
+	vec2_ray_ray(itrsec, ray, r1, t);
+
+	printf("vec2_ray_line() - t = %f\n", *t);
+
+	if(*t >= 0 && *t <= 1.0){
+		vec2_print(ray.p);
+		vec2_print(ray.n);
+
+		vec2_scale(itrsec, ray.n, *t);
+		vec2_add(itrsec, itrsec, ray.p);
+		return 1;
+	}
+
+	return 0;
+}
+
+static inline int vec2_ray_line_interior(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
+{
+	ray2 r = {
+		.p = { v1[0], v1[1] },
+		.n = { v2[0] - v1[0], v2[1] - v1[1] }
+	};
+
+	vec2_ray_ray(itrsec, r, ray, t);
+
+	printf("vec2_ray_line() - t = %f\n", *t);
+
+	if(*t > 0 && *t < 1.0) return 1;
+
+	return 0;
+}
+
+static inline int vec2_point_on_line(vec2 point, vec2 v1, vec2 v2)
+{
+	ray2 r;
+	vec2 norm;
+
+	vec2_sub(norm, v2, v1);
+	float dx = norm[0];
+	vec2_norm(norm, norm);
+	norm[0] = norm[1] * 1e-6; norm[1] = -dx * 1e-6;
+	vec2_sub(r.p, point, norm);
+	vec2_set(r.p, point);
+	vec2_scale(r.n, norm, 2);
+
+	vec2_print(r.p);
+	vec2_print(r.n);
+
+	vec2 intersect = {};
+
+	float t = -1;
+	int result = vec2_ray_line(intersect, r, v1, v2, &t);
+
+	printf("result %d time %f\n", result, t);
+
+	return result;
 }
 
 static inline int vec2_ray_circle(vec2 intersect, ray2 ray, vec2 position, float radius)
