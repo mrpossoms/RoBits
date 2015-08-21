@@ -31,10 +31,12 @@ ifdef IS_LIBRARY
 	rm *.o
 else
 	$(CC) $(CFLAGS) $(INC) $(SRC) -o $(NAME) $(LINK)
+	./$(NAME)
 endif
 else
 	@echo "Project not setup! Please run 'make setup' first."
 endif
+	
 
 testlib: $(SRC)
 ifdef NAME

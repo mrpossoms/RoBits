@@ -11,12 +11,16 @@ class Line : public Geometry
 public:
 	Line();
 	Line(Line const &l);
+	Line(float v1x, float v1y, float v2x, float v2y, uint32_t color);
 	Line(vec2 v1, vec2 v2, uint32_t color);
 	Line(vec2 v1, vec2 v2, vec4 color);
+	Line(int fd);
 	~Line();
 
-	float intersects(Geometry* geo, vec2 normal);
-	float intersectedByRay(ray2 ray, vec2 intersect);
+	size_t store(int fd);
+
+	int intersects(Geometry* geo, vec2 normal, float* t);
+	int intersectedByRay(ray2 ray, vec2 intersect, float* t);
 
 	int isOverlapping(Line* line);
 	int bisect(vec2 point, Line lines[2]);

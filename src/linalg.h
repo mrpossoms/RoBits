@@ -29,13 +29,15 @@ typedef struct{
 	vec2 n;
 } ray2;
 
-static inline void vec2_set(vec2 r, vec2 v)
+const vec2 VEC2_ZERO = { 0 };
+
+static inline void vec2_set(vec2 r, const vec2 v)
 {
 	r[0] = v[0];
 	r[1] = v[1];
 }
 
-static inline void vec2_rectangle_min_max(vec2 min, vec2 max, vec2 verts[], int count)
+static inline void vec2_rectangle_min_max(vec2 min, vec2 max, const vec2 verts[], const int count)
 {
 	for(int i = count; i--;){
 		min[0] = verts[i][0] < min[0] ? verts[i][0] : min[0];
@@ -62,17 +64,17 @@ static inline int vec2_rectangle_or_touches_contains_point(vec2 min, vec2 max, v
 	return min[0] - e <= p[0] && p[0] <= max[0] + e && min[1] - e <= p[1] && p[1] <= max[1] + e;
 }
 
-static inline void vec2_add(vec2 r, vec2 a, vec2 b){
+static inline void vec2_add(vec2 r, const vec2 a, const vec2 b){
     r[0] = a[0] + b[0];
     r[1] = a[1] + b[1];
 }
 
-static inline void vec2_sub(vec2 r, vec2 a, vec2 b){
+static inline void vec2_sub(vec2 r, const vec2 a, const vec2 b){
     r[0] = a[0] - b[0];
     r[1] = a[1] - b[1];
 }
 
-static inline void vec2_scale(vec2 r, vec2 v, GLfloat s){
+static inline void vec2_scale(vec2 r, const vec2 v, GLfloat s){
     r[0] = v[0] * s;
     r[1] = v[1] * s;
 }
@@ -84,24 +86,24 @@ static inline void vec2_lerp(vec2 r, vec2 start, vec2 finish, GLfloat t)
     r[1] = omt * start[1] + t * finish[1];
 }
 
-static inline GLfloat vec2_dot(vec2 a, vec2 b)
+static inline GLfloat vec2_dot(const vec2 a, const vec2 b)
 {
 	return a[0] * b[0] + a[1] * b[1];
 }
 
-static inline float vec2_len(vec2 v)
+static inline float vec2_len(const vec2 v)
 {
 	return sqrtf(v[0] * v[0] + v[1] * v[1]);
 }
 
-static inline float vec2_dist(vec2 a, vec2 b)
+static inline float vec2_dist(const vec2 a, const vec2 b)
 {
 	vec2 diff;
 	vec2_sub(diff, a, b);
 	return vec2_len(diff);
 }
 
-static inline void vec2_norm(vec2 r, vec2 v)
+static inline void vec2_norm(vec2 r, const vec2 v)
 {
 	vec2_scale(r, v, 1.0 / vec2_len(v));
 }
@@ -146,10 +148,10 @@ static inline int vec2_point_on_ray(ray2 r, vec2 p, float* t){
 	return 1;
 }
 
-static inline void vec2_ray_ray(vec2 intersect, ray2 r1, ray2 r2, float* t)
+static inline int vec2_ray_ray(vec2 intersect, ray2 r1, ray2 r2, float* t)
 {
-	printf("\nr1 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r1.p[0], r1.p[1], r1.n[0], r1.n[1]);
-	printf("r2 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r2.p[0], r2.p[1], r2.n[0], r2.n[1]);
+	// printf("\nr1 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r1.p[0], r1.p[1], r1.n[0], r1.n[1]);
+	// printf("r2 = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", r2.p[0], r2.p[1], r2.n[0], r2.n[1]);
 
 	vec2 rayPos;
 	vec2 r2n = { r2.n[1], -r2.n[0] };
@@ -161,33 +163,14 @@ static inline void vec2_ray_ray(vec2 intersect, ray2 r1, ray2 r2, float* t)
 	ldp = -vec2_dot(r2n, rayPos);
 	ldr = vec2_dot(r2n, r1.n);
 
-	*t = -1;
+	if(ldr == 0) return 0;
 
-	if(ldr == 0){
-		printf("rutro\n");
-
-		vec2 delta = { r1.p[0] - r2.p[0], r1.p[1] - r2.p[1]};
-		float d = vec2_dot(delta, r2n);
-		printf("d = %f\n", d);
-		if(d == 0){
-			vec2 r2End = { r2.p[0] + r2.n[0], r2.p[1] + r2.n[1] };
-
-			// begining of r1 exists on r2
-			if(vec2_point_on_ray(r2, r1.p, t) && (*t >= 0 && *t <= 1)){
-				*t = 0;
-			}
-			else{
-				vec2_point_on_ray(r1, r2End, t);
-			}
-
-		}
-	}
-	else{
-		*t = ldp / ldr;	
-	}
+	*t = ldp / ldr;	
 
 	vec2_scale(intersect, r1.n, *t);
 	vec2_add(intersect, intersect, r1.p);
+
+	return 1;
 }
 
 static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
@@ -204,15 +187,30 @@ static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* 
 
 	vec2_ray_ray(itrsec, ray, r1, t);
 
-	printf("vec2_ray_line() - t = %f\n", *t);
+	// printf("vec2_ray_line() - t = %f\n", *t);
 
 	if(*t >= 0 && *t <= 1.0){
-		vec2_print(ray.p);
-		vec2_print(ray.n);
+		// vec2_print(ray.p);
+		// vec2_print(ray.n);
 
 		vec2_scale(itrsec, ray.n, *t);
 		vec2_add(itrsec, itrsec, ray.p);
 		return 1;
+	}
+
+	return 0;
+}
+
+static inline int vec2_line_line(vec2 intersect, vec2 a1, vec2 a2, vec2 b1, vec2 b2, float* t)
+{
+	ray2 ra, rb;
+	vec2_set(ra.p, a1);
+	vec2_sub(ra.n, a2, a1);
+	vec2_set(rb.p, b1);
+	vec2_sub(rb.n, b2, b1);
+
+	if(vec2_ray_line(intersect, ra, b1, b2, t)){
+		return vec2_ray_line(intersect, rb, a1, a2, t);
 	}
 
 	return 0;
@@ -227,7 +225,7 @@ static inline int vec2_ray_line_interior(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2
 
 	vec2_ray_ray(itrsec, r, ray, t);
 
-	printf("vec2_ray_line() - t = %f\n", *t);
+	// printf("vec2_ray_line() - t = %f\n", *t);
 
 	if(*t > 0 && *t < 1.0) return 1;
 

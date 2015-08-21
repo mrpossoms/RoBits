@@ -15,6 +15,20 @@ Line::Line(Line const &line)
 	INT_TO_VEC4(0xFFFFFFFF, color);
 }
 
+Line::Line(float v1x, float v1y, float v2x, float v2y, uint32_t col)
+{
+	vec2 v1 = { v1x, v1y };
+	vec2 v2 = { v2x, v2y };
+
+	vec2_set(vertices[0], v1);
+	vec2_set(vertices[1], v2);
+
+	vertices[0][2] = vertices[1][2] = 0.0f;
+	vertices[0][3] = vertices[1][3] = 1.0f;
+
+	INT_TO_VEC4(col, color);
+}
+
 Line::Line(vec2 v1, vec2 v2, vec4 col)
 {
 	vec2_set(vertices[0], v1);
@@ -41,6 +55,24 @@ Line::Line(vec2 v1, vec2 v2, uint32_t col)
 	// cout << "R: " << color[0] << " G: " << color[1] << " B: " << color[2] << " A: " << color[3] << endl;
 }
 
+Line::Line(int fd)
+{
+	read(fd, vertices, sizeof(vertices));
+	read(fd, color, sizeof(vec4));
+
+	printf("(%f, %f) - (%f, %f)\n", vertices[0][0], vertices[0][1], vertices[1][0], vertices[1][1]);
+}
+
+size_t Line::store(int fd)
+{
+	size_t size = 0;
+
+	size += write(fd, vertices, sizeof(vertices));
+	size += write(fd, color, sizeof(vec4));
+
+	return size;
+}
+
 Line::~Line()
 {
 	
@@ -53,9 +85,9 @@ int Line::isOverlapping(Line* line)
 		{ vertices[1][0] - vertices[0][0], vertices[1][1] - vertices[0][1] }
 	};
 	vec2 intersect = {};
-	float t = line->intersectedByRay(r, intersect);
+	float t = 0;
 
-	if(t > 0 && t < 1){
+	if(line->intersectedByRay(r, intersect, &t) && t > 0 && t < 1){
 		return 1;
 	}
 
@@ -137,8 +169,9 @@ int Line::trim(Line line, Line newLines[2])
 	// B~~~~A====A~~~~B t0 = 0 and t1 = 0
 
 
-	float t0 = line.intersectedByRay(v01, intersects[0]); 
-	float t1 = line.intersectedByRay(v10, intersects[1]);
+	float t0 = 0, t1 = 0; 
+	line.intersectedByRay(v01, intersects[0], &t0); 
+	line.intersectedByRay(v10, intersects[0], &t1);
 
 	vec2_print(intersects[0]);
 	vec2_print(intersects[1]);
@@ -156,30 +189,39 @@ int Line::trim(Line line, Line newLines[2])
 	return 0;
 }
 
-float Line::intersects(Geometry* geo, vec2 normal)
+int Line::intersects(Geometry* geo, vec2 normal, float* t)
 {
+	Line* line = dynamic_cast<Line*>(geo);
+
+	if(line){ // line circle intersection
+		vec2 inter;
+		return vec2_line_line(
+			inter,
+			line->vertices[0],
+			line->vertices[1],
+			vertices[0],
+			vertices[1],
+			t);
+	}
+
 	return 0;
 }
 
-float Line::intersectedByRay(ray2 ray, vec2 intersect)
+int Line::intersectedByRay(ray2 ray, vec2 intersect, float* t)
 {
-	float t;
 
-	if(!vec2_ray_line(intersect, ray, vertices[0], vertices[1], &t)){
-		return -1;
+	if(vec2_ray_line(intersect, ray, vertices[0], vertices[1], t)){
+		return 1;
 	}
 
 	// printf("ray = {%0.3f, %0.3f} -> {%0.3f, %0.3f}\n", ray.p[0], ray.p[1], ray.n[0], ray.n[1]);
 	// printf("intersects = {%0.3f, %0.3f} --- {%0.3f, %0.3f} @ t = %f\n\n", vertices[0][0], vertices[0][1], vertices[1][0], vertices[1][1], t);
-	return t;
+	return 0;
 }
 
 void Line::draw(mat4x4 viewProjection)
 {
 	vec4 temp;
-
-	glLineWidth(3.0);
-	glBegin(GL_LINES);
 
 	glColor4f(color[0], color[1], color[2], color[3]);
 
@@ -187,8 +229,6 @@ void Line::draw(mat4x4 viewProjection)
 	glVertex2f(temp[0], temp[1]);
 	mat4x4_mul_vec4(temp, viewProjection, vertices[1]);
 	glVertex2f(temp[0], temp[1]);
-
-	glEnd();
 }
 
 void Line::setColor(uint32_t col)

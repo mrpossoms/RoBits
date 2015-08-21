@@ -15,9 +15,32 @@ Room::Room(Rectangle bounds, int depth)
 	trace();
 }
 
+Room::Room(int fd)
+{
+	uint32_t edges;
+
+	read(fd, &edges, sizeof(uint32_t));
+	cout << "Loading " << edges << " walls\n";
+
+	for(int i = edges; i--;){
+		perimeter.push_back(new Line(fd));
+	}
+}
+
 Room::~Room()
 {
 
+}
+
+size_t Room::store(int fd)
+{
+	size_t size = 0;
+
+	for(int i = perimeter.size(); i--;){
+		size += perimeter[i]->store(fd);
+	}
+
+	return size;
 }
 
 vector<Rectangle*>* Room::neighborsOf(Rectangle* rectangle)
@@ -132,12 +155,12 @@ void Room::subdivide(Rectangle* bounds, int recurse, vec2 required[2])
 	}
 }
 
-float Room::intersects(Geometry* geo, vec2 normal)
+int Room::intersects(Geometry* geo, vec2 normal, float* t)
 {
 	return 0;	
 }
 
-float Room::intersectedByRay(ray2 ray, vec2 intersect)
+int Room::intersectedByRay(ray2 ray, vec2 intersect, float* t)
 {
 	return 0;
 }
@@ -145,9 +168,14 @@ float Room::intersectedByRay(ray2 ray, vec2 intersect)
 
 void Room::draw(mat4x4 viewProjection)
 {
+	glLineWidth(3.0);
+	glBegin(GL_LINES);
+
 	for(int i = perimeter.size(); i--;){
 		perimeter[i]->draw(viewProjection);
 	}
+
+	glEnd();
 }
 
 

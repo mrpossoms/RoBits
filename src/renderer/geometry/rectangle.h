@@ -14,8 +14,10 @@ public:
 	Rectangle(vec2 upperLeft, vec2 lowerRight, uint32_t color);
 	~Rectangle();
 
-	float intersects(Geometry* geo, vec2 normal);
-	float intersectedByRay(ray2 ray, vec2 intersect);
+	size_t store(int fd);
+
+	int intersects(Geometry* geo, vec2 normal, float* t);
+	int intersectedByRay(ray2 ray, vec2 intersect, float* t);
 
 	void draw(mat4x4 viewProjection);
 	void setColor(uint32_t color);

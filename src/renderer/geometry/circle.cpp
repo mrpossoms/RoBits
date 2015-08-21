@@ -4,15 +4,24 @@
 
 using namespace std;
 
-Circle::Circle(vec2 pos, float r, uint32_t col)
+Circle::Circle(const vec2 pos, float r, uint32_t col)
 {
-	vec2_set(position, pos);
+	vec2_set(position, (float*)pos);
 	position[3] = 1.0f;
 	radius = r;
 
 	INT_TO_VEC4(col, color);
+}
 
-	cout << "R: " << color[0] << " G: " << color[1] << " B: " << color[2] << endl;
+size_t Circle::store(int fd)
+{
+	size_t size = 0;
+
+	size += write(fd, position, sizeof(vec2));
+	size += write(fd, &radius, sizeof(float));
+	size += write(fd, color, sizeof(vec4));
+
+	return size;
 }
 
 Circle::~Circle()
@@ -20,7 +29,7 @@ Circle::~Circle()
 	
 }
 
-float Circle::intersects(Geometry* geo, vec2 normal)
+int Circle::intersects(Geometry* geo, vec2 normal, float* t)
 {
 	Line* line = dynamic_cast<Line*>(geo);
 
@@ -36,14 +45,17 @@ float Circle::intersects(Geometry* geo, vec2 normal)
 		};
 		vec2 intersect = {};
 
-		return this->intersectedByRay(ray, intersect);
+		float t;
+		if(this->intersectedByRay(ray, intersect, &t)){
+			return 0 <= t && t <= 1;
+		}
 	}
 
 
 	return 0;
 }
 
-float Circle::intersectedByRay(ray2 ray, vec2 intersect)
+int Circle::intersectedByRay(ray2 ray, vec2 intersect, float* t)
 {
 	float px = ray.p[0] - position[0], py = ray.p[1] - position[1];
 	float nx = ray.n[0], ny = ray.n[1];
@@ -60,12 +72,16 @@ float Circle::intersectedByRay(ray2 ray, vec2 intersect)
 	if(!isnan(t1) && t1 < t2){
 		intersect[0] = ray.p[0] + ray.n[0] * t1;
 		intersect[1] = ray.p[1] + ray.n[1] * t1;
-		return t1;
+		*t = t1;
+
+		return 1;
 	}
 	else if(!isnan(t2)){
 		intersect[0] = ray.p[0] + ray.n[0] * t2;
 		intersect[1] = ray.p[1] + ray.n[1] * t2;	
-		return t2;
+		*t = t2;
+
+		return 1;
 	}
 
 	return 0;

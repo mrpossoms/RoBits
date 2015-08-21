@@ -14,12 +14,15 @@ class Geometry
 {
 public:
 	// interaction / simulation
-	virtual float intersects(Geometry* geo, vec2 normal) = 0;
-	virtual float intersectedByRay(ray2 ray, vec2 intersect) = 0;
+	virtual int intersects(Geometry* geo, vec2 normal, float* t) = 0;
+	virtual int intersectedByRay(ray2 ray, vec2 intersect, float* t) = 0;
 
 	// rendering and visuals
 	virtual void draw(mat4x4 viewProjection) = 0;
 	virtual void setColor(uint32_t color) = 0;
+
+	// serialization
+	virtual size_t store(int fd) = 0;
 
 	uint32_t tag;
 protected:

@@ -28,30 +28,43 @@ Rectangle::Rectangle(vec2 ul, vec2 lr, uint32_t col)
 	setColor(col);
 }
 
+size_t Rectangle::store(int fd)
+{
+	size_t size = 0;
+
+	size += write(fd, vertices, sizeof(vertices));
+	size += write(fd, color, sizeof(vec4));
+
+	return size;
+}
+
 Rectangle::~Rectangle()
 {
 
 }
 
-float Rectangle::intersects(Geometry* geo, vec2 normal)
+int Rectangle::intersects(Geometry* geo, vec2 normal, float* t)
 {
 	return 0;
 }
 
-float Rectangle::intersectedByRay(ray2 ray, vec2 intersect)
+int Rectangle::intersectedByRay(ray2 ray, vec2 intersect, float* t)
 {
-	float t = 100000000;
+	*t = 100000000;
 
 	for(int i = 3; i--;){
-		if(vec2_ray_line(intersect, ray, vertices[i], vertices[i+1], &t)){
+		if(vec2_ray_line(intersect, ray, vertices[i], vertices[i+1], t)){
 			vec2 delta; vec2_sub(delta, intersect, ray.p);
 			float temp = vec2_len(delta);
 
-			if(temp > 0 && temp < t) t = temp;
+			if(temp > 0 && temp < *t){
+				*t = temp;
+				return 1;
+			}
 		}
 	}
 
-	return t;
+	return 0;
 }
 
 void Rectangle::draw(mat4x4 viewProjection)
