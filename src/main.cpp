@@ -12,12 +12,17 @@
 #include "environment/room.h"
 #include "environment/robit.h"
 
+vec4 trail[1000];
+int trailIndex;
+float sampleTimer;
+
 int main(int argc, char* argv[])
 {
 	vec2 size = { 800, 600 };
 	Renderer renderer(size);
 
 	srand(time(NULL));
+	bzero(trail, sizeof(trail));
 
 	int fd = open("./room.bin", O_RDONLY);
 	Room* room = new Room(fd);
@@ -47,6 +52,29 @@ int main(int argc, char* argv[])
 		// rendering and update logic
 		room->draw(viewProjection);
 		robit->draw(viewProjection);
+
+		if(sampleTimer <= 0){
+			sampleTimer = 1;
+			trail[trailIndex][3] = 1;
+			vec2_set(trail[trailIndex++], robit->position);
+			trailIndex = trailIndex % 1000;
+		}
+		else{
+			sampleTimer -= dt;
+		}
+
+		glBegin(GL_LINE_STRIP);
+		for(int i = 0; i < 1000; ++i){
+			int ti = mod(trailIndex - i, 1000);
+			vec4 temp;
+
+			if(trail[ti][3] == 1){
+				mat4x4_mul_vec4(temp, viewProjection, trail[ti]);
+				glVertex2f(temp[0], temp[1]);
+				glColor4f(0, (1000 - i) / 1000.0f, 0, 1.0);
+			}
+		}
+		glEnd();
 
 		renderer.present();
 		lastTime = now;

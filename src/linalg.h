@@ -19,6 +19,11 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b));
 #define RAND_F ((rand() % 1024) / 1024.0)
 
+static inline int mod(int a, int n)
+{
+	return a - n * floor(a / n);
+}
+
 static inline int bet(GLfloat a, GLfloat m, GLfloat b){
 	return fabs(a - m) + fabs(m - b) == fabs(a - b);
 }

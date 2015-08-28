@@ -38,7 +38,9 @@ endif
 else
 	@echo "Project not setup! Please run 'make setup' first."
 endif
-	
+
+rmshm:
+	ipcrm -M 0xdeadbeef	
 
 testlib: $(SRC)
 ifdef NAME

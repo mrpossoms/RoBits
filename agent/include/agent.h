@@ -9,9 +9,9 @@
 #define MOTOR_VAC   2
 
 typedef struct{
-	uint8_t  buf[256]; // sim
-	uint16_t len;      // sim
-	uint16_t read;     // agent as data is consumed
+	uint8_t  buf[512]; // sim
+	uint16_t len;      // sim,
+	uint16_t ok;
 } radio_t;
 
 typedef struct{
@@ -20,7 +20,7 @@ typedef struct{
 	int16_t odometer[2]; // sim 
 	int8_t  motor[3];    // agent
 	
-	radio_t radio;
+	radio_t rx, tx;
 } agent_t;
 
 extern agent_t* ROBIT_STATE;

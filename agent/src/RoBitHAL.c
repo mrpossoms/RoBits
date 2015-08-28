@@ -1,5 +1,6 @@
 #include "agent.h"
 #include "RoBitHAL.h"
+#include <string.h>
 
 // Sensors
 int HAL_readEncoder(int wheel, int flags)
@@ -43,13 +44,28 @@ int HAL_driveMotor(int flags)
 }
 
 // Communications
+static int (*REC_DATA)(struct RobitMessage*);
 int HAL_setDataCallback(int (*onData)(struct RobitMessage*))
 {
+	REC_DATA = onData;
+
 	return 0;
 }
 
 
 int HAL_sendData(struct RobitMessage* data)
 {
+	ROBIT_STATE->tx.len = sizeof(struct RobitMessage);
+	memcpy(ROBIT_STATE->tx.buf, data, ROBIT_STATE->tx.len);
+	ROBIT_STATE->tx.ok = 1;
+
 	return 0;
+}
+
+void HAL_tick()
+{
+	if(ROBIT_STATE->rx.ok){
+		REC_DATA((struct RobitMessage*)ROBIT_STATE->rx.buf);
+		ROBIT_STATE->rx.ok = 0;
+	}
 }

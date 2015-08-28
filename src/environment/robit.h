@@ -17,10 +17,11 @@ public:
 	int intersects(Geometry* geo, vec2 normal, float* t);
 	void update(float dt);
 	void draw(mat4x4 viewProjection);
+
+	vec2  position;
 private:
 	Room* room;
 
-	vec2  position;
 	float rotation;
 
 	vector<Geometry*> parts;

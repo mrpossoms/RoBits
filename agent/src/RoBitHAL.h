@@ -29,6 +29,7 @@ typedef unsigned char byte;
 struct RobitMessage{
 	byte botId;     // unique identifier for the bot that sent this message
 	byte len;       // bytes that will follow this one
+	byte type;      
 	byte data[256]; // generic data packet
 };
 
@@ -43,5 +44,7 @@ int HAL_driveMotor(int flags); // bit flags with motor and direction or'ed toget
 // Communications
 int HAL_setDataCallback(int (*onData)(struct RobitMessage*));
 int HAL_sendData(struct RobitMessage* data);
+
+void HAL_tick();
 
 #endif

@@ -21,6 +21,7 @@ int main(int argc, const char* argv[])
 	key_t uid = (key_t)strtol(argv[1], NULL, 16);
 	int shmid = 0;
 	if ((shmid = shmget((key_t)uid, sizeof(agent_t), 0666)) < 0) {
+		printf("Shared memory error\n");
 		return 1;
 	}
 	ROBIT_STATE = (agent_t*)shmat(shmid, NULL, 0);

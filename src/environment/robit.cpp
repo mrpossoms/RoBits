@@ -32,10 +32,13 @@ void Robit::createParts()
 	for(int i = 6; i--;){
 		vec2 p1 = { sin((i+0) * dt + 0.2 - off) * ROBIT_RAD, cos((i+0) * dt + 0.2 - off) * ROBIT_RAD };
 		vec2 p2 = { sin((i+1) * dt - 0.2 - off) * ROBIT_RAD, cos((i+1) * dt - 0.2 - off) * ROBIT_RAD };
+		vec2 p3 = { sin((i+0.5) * dt - off) * (ROBIT_RAD + 0.0025), cos((i+0.5) * dt - off) * (ROBIT_RAD + 0.0025) };
 
-		Line* bumper = new Line(p1, p2, 0xFF00FFFF);
+		Line* b1 = new Line(p1, p3, 0xFF00FFFF);
+		Line* b2 = new Line(p3, p2, 0xFF00FFFF);
 
-		bumpers.push_back(bumper);
+		bumpers.push_back(b1);
+		bumpers.push_back(b2);
 	}	
 }
 
@@ -166,7 +169,7 @@ int Robit::intersects(Geometry* geo, vec2 normal, float* t)
 		float t = 0;
 
 		if(transformed.intersects(geo, normal, &t)){
-			state->bumper[i] = 1;
+			state->bumper[i / 2] = 1;
 			bumper->setColor(0xFFFFFFFF);
 			return 1;
 		}
