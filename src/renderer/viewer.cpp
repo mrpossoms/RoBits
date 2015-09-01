@@ -51,11 +51,11 @@ void vwrOnScroll(GLFWwindow* window, double xoffset, double yoffset)
 {
 
 	if(!strcmp("Linux", VWR_OS.sysname)){
-		VWR_ZOOM += yoffset / 10.0f;
+		VWR_ZOOM += (float)yoffset / 10.0f;
 		if(VWR_ZOOM < 0.25f) VWR_ZOOM = 0.25f;
 	}
 	else{
-		vec2 delta = { xoffset / 10.0f, -yoffset / 10.0f };
+		vec2 delta = { (float)xoffset / 10.0f, -(float)yoffset / 10.0f };
 		vec2_add(VWR_POSITION, VWR_POSITION, delta);
 	}
 }

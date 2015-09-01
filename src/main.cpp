@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <time.h>
 #include <fcntl.h>
+#include <string.h>
 #include <GLFW/glfw3.h>
 #include <sys/time.h>
 #include "renderer.h"
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
 		gettimeofday(&now, NULL);
 		double n = (double)now.tv_sec + ((double)now.tv_usec * 10.0e-6);
 		double l = (double)lastTime.tv_sec + ((double)lastTime.tv_usec * 10.0e-6);  
-		double dt = 0.1;//n - l;
+		double dt = 0.2;//n - l;
 
 		robit->update(dt);
 

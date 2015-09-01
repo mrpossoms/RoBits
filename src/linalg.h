@@ -181,13 +181,13 @@ static inline int vec2_ray_ray(vec2 intersect, ray2 r1, ray2 r2, float* t)
 static inline int vec2_ray_line(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
 {
 	ray2 r1 = {
-		.p = { v1[0], v1[1] },
-		.n = { v2[0] - v1[0], v2[1] - v1[1] }
+		{ v1[0], v1[1] },
+		{ v2[0] - v1[0], v2[1] - v1[1] }
 	};
 
 	ray2 r2 = {
-		.p = { v2[0], v2[1] },
-		.n = { v1[0] - v2[0], v1[1] - v2[1] }
+		{ v2[0], v2[1] },
+		{ v1[0] - v2[0], v1[1] - v2[1] }
 	};
 
 	vec2_ray_ray(itrsec, ray, r1, t);
@@ -224,8 +224,8 @@ static inline int vec2_line_line(vec2 intersect, vec2 a1, vec2 a2, vec2 b1, vec2
 static inline int vec2_ray_line_interior(vec2 itrsec, ray2 ray, vec2 v1, vec2 v2, float* t)
 {
 	ray2 r = {
-		.p = { v1[0], v1[1] },
-		.n = { v2[0] - v1[0], v2[1] - v1[1] }
+		{ v1[0], v1[1] },
+		{ v2[0] - v1[0], v2[1] - v1[1] }
 	};
 
 	vec2_ray_ray(itrsec, r, ray, t);

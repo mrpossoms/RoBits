@@ -4,6 +4,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <inttypes.h>
+#include <unistd.h>
+#include <errno.h>
+#include <time.h>
 
 #include "agent.h"
 #include "RoBitHAL.h"
@@ -18,18 +21,23 @@ int main(int argc, const char* argv[])
 	}
 
 	// attach to the shared memory segment
-	key_t uid = (key_t)strtol(argv[1], NULL, 16);
+	key_t uid = (key_t)strtoll(argv[1], NULL, 16);
 	int shmid = 0;
 	if ((shmid = shmget((key_t)uid, sizeof(agent_t), 0666)) < 0) {
-		printf("Shared memory error\n");
+		printf("0x%x\n", uid);
+		printf("Shared memory error (%d)\n", errno);
 		return 1;
 	}
 	ROBIT_STATE = (agent_t*)shmat(shmid, NULL, 0);
 	
+	struct timespec delay = {
+		0, 10000
+	};
+
 	// keep on running
 	while(1){
 		agentLoop();
-		usleep(1000);
+		nanosleep(&delay, NULL);
 	}
 
 	return 0;

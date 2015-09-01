@@ -11,7 +11,6 @@
 struct SensorState{
 	int bumper;
 	int odo[2];
-	
 };
 
 struct Action{
@@ -25,7 +24,8 @@ struct StateAction
 	struct Action action;
 };
 
-uint16_t position[2];
+struct Action task;
+
 struct StateAction sequence[10];
 int sequenceIndex;
 int sequenceHistory;
@@ -78,9 +78,6 @@ void selectState(int* states, int* dir){
 	}	
 }
 
-int leftDir = ROBIT_WHEEL_FORWARD, rightDir = ROBIT_WHEEL_FORWARD;
-int continueTask;
-
 void storeStateAction(int bumper, int odoLeft, int odoRight)
 {
 	struct StateAction sa = {
@@ -89,8 +86,12 @@ void storeStateAction(int bumper, int odoLeft, int odoRight)
 			.odo = { odoLeft, odoRight },
 		},
 		.action = {
-			.motors = { leftDir, rightDir, 0 },
-			.duration = continueTask,
+			.motors = {
+				task.motors[ROBIT_WHEEL_LEFT],
+				task.motors[ROBIT_WHEEL_RIGHT],
+				0
+			},
+			.duration = task.duration,
 		}
 	};
 
@@ -116,26 +117,26 @@ void agentLoop(void)
 	if(bumper){
 		permissibleStates(&leftStates, &rightStates, bumper);
 
-		printf("sequenceIndex = %d\n", sequenceIndex);
+		// printf("sequenceIndex = %d\n", sequenceIndex);
 
-		selectState(leftStates,  &leftDir);
-		selectState(rightStates, &rightDir);
+		selectState(leftStates,  &task.motors[ROBIT_WHEEL_LEFT]);
+		selectState(rightStates, &task.motors[ROBIT_WHEEL_RIGHT]);
 
-		continueTask = 100 + random() % 100;
+		task.duration = 200 + random() % 200;
 		storeStateAction(bumper, odoLeft, odoRight);
 	}
-	else if(!continueTask){
-		leftDir = ROBIT_WHEEL_FORWARD;
-		rightDir = ROBIT_WHEEL_FORWARD;
+	else if(!task.duration){
+		task.motors[ROBIT_WHEEL_LEFT] = ROBIT_WHEEL_FORWARD;
+		task.motors[ROBIT_WHEEL_RIGHT] = ROBIT_WHEEL_FORWARD;
 	}
 	else{
-		continueTask--;
+		task.duration--;
 
-		if(!continueTask){
+		if(!task.duration){
 			storeStateAction(bumper, odoLeft, odoRight);
 		}
 	}
 
-	HAL_driveMotor(ROBIT_WHEEL_LEFT  | leftDir);
-	HAL_driveMotor(ROBIT_WHEEL_RIGHT | rightDir);
+	HAL_driveMotor(ROBIT_WHEEL_LEFT  | task.motors[ROBIT_WHEEL_LEFT]);
+	HAL_driveMotor(ROBIT_WHEEL_RIGHT | task.motors[ROBIT_WHEEL_RIGHT]);
 }

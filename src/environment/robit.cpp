@@ -10,8 +10,9 @@
 #include <stdio.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <string.h>
 
-#define ROBIT_RAD 0.1
+#define ROBIT_RAD 0.1f
 
 static float WHEEL_BASE;
 
@@ -30,9 +31,9 @@ void Robit::createParts()
 	float dt = M_PI / 3.0;
 	float off = M_PI / 6;
 	for(int i = 6; i--;){
-		vec2 p1 = { sin((i+0) * dt + 0.2 - off) * ROBIT_RAD, cos((i+0) * dt + 0.2 - off) * ROBIT_RAD };
-		vec2 p2 = { sin((i+1) * dt - 0.2 - off) * ROBIT_RAD, cos((i+1) * dt - 0.2 - off) * ROBIT_RAD };
-		vec2 p3 = { sin((i+0.5) * dt - off) * (ROBIT_RAD + 0.0025), cos((i+0.5) * dt - off) * (ROBIT_RAD + 0.0025) };
+		vec2 p1 = { sinf((i+0) * dt + 0.2f - off) * ROBIT_RAD, cosf((i+0) * dt + 0.2f - off) * ROBIT_RAD };
+		vec2 p2 = { sinf((i+1) * dt - 0.2f - off) * ROBIT_RAD, cosf((i+1) * dt - 0.2f - off) * ROBIT_RAD };
+		vec2 p3 = { sinf((i+0.5f) * dt - off) * (ROBIT_RAD + 0.0025f), cosf((i+0.5f) * dt - off) * (ROBIT_RAD + 0.0025f) };
 
 		Line* b1 = new Line(p1, p3, 0xFF00FFFF);
 		Line* b2 = new Line(p3, p2, 0xFF00FFFF);
@@ -40,6 +41,8 @@ void Robit::createParts()
 		bumpers.push_back(b1);
 		bumpers.push_back(b2);
 	}	
+
+	assert(bumpers.size() == 12);
 }
 
 agent_t* Robit::attachShm(uint32_t key)
