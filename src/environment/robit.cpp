@@ -1,6 +1,7 @@
 #include "robit.h"
 
 #include "geometry/line.h"
+#include "geometry/lineSegment.h"
 #include "geometry/rectangle.h"
 #include "geometry/circle.h"
 
@@ -20,6 +21,12 @@ static float WHEEL_BASE;
 void Robit::createParts()
 {
 	parts.push_back(new Circle(VEC2_ZERO, 0.85 * ROBIT_RAD, 0xFF00FFFF));
+	
+	{
+		vec2 p1 = { 0, 0.85 * ROBIT_RAD };
+		vec2 p2 = { 0, 0 };
+		parts.push_back(new LineSegment(p1, p2, 0xFF00FFFF));
+	}
 
 	vec2 ull = { -0.6 * ROBIT_RAD, -0.15 * ROBIT_RAD};
 	vec2 lrl = { -0.7 * ROBIT_RAD,  0.15 * ROBIT_RAD};

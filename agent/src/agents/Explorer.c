@@ -56,12 +56,20 @@ void selectState(int* states, int* dir){
 	}	
 }
 
+int16_t lastPosition[2];
+
 void agentLoop(void)
 {
-	uint16_t pos[2];
+	int16_t pos[2] = {};
 
 	HAL_positionEstimate(pos);
 
+	if(lastPosition[0] != pos[0] || lastPosition[1] != pos[1]){
+		printf("agent -> (%d, %d)\n", pos[0], pos[1]);
+
+		lastPosition[0] = pos[0];
+		lastPosition[1] = pos[1];
+	}
 
 	HAL_driveMotor(ROBIT_WHEEL_LEFT  | ROBIT_WHEEL_FORWARD);
 	HAL_driveMotor(ROBIT_WHEEL_RIGHT | ROBIT_WHEEL_FORWARD);

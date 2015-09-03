@@ -31,6 +31,6 @@ public:
 	void setColor(uint32_t color);
 
 	vec4 vertices[2];
-private:
+protected:
 	vec4 color;
 };

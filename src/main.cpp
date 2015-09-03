@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 	bzero(trail, sizeof(trail));
 
-	int fd = open("./room.bin", O_RDONLY);
+	int fd = open("./room.geo", O_RDONLY);
 	Room* room = new Room(fd);
 	robit = new Robit(room, 0xDEADBEEF);
 

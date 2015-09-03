@@ -71,16 +71,13 @@ void HAL_tick()
 	orientation += (ODO(ROBIT_WHEEL_RIGHT) - ODO(ROBIT_WHEEL_LEFT)) * s2m / ROBIT_WHEELBASE;
 
 	// update the position
-	position[0] += mag * cos(orientation);
-	position[1] += mag * sin(orientation);
+	position[0] += mag * sin(orientation);
+	position[1] += mag * cos(orientation);
 
 	// reset the odo
 	if(ODO(ROBIT_WHEEL_RIGHT) || ODO(ROBIT_WHEEL_LEFT)){
-		printf("(%f %f)\n", position[0], position[1]);
-		printf("(%d %d) \n", ODO(ROBIT_WHEEL_LEFT), ODO(ROBIT_WHEEL_RIGHT));
 		ODO(ROBIT_WHEEL_RIGHT) = ODO(ROBIT_WHEEL_LEFT) = 0;
 	}
-	// printf("(%d %d)\n", ODO(ROBIT_WHEEL_RIGHT), ODO(ROBIT_WHEEL_LEFT));
 
 	if(ROBIT_STATE->rx.ok){
 		REC_DATA((struct RobitMessage*)ROBIT_STATE->rx.buf);
