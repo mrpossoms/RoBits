@@ -14,6 +14,7 @@ public:
 	Robit(Room* room, uint32_t id);
 	~Robit();
 
+	void reset();
 	int intersects(Geometry* geo, vec2 normal, float* t);
 	void update(float dt);
 	void draw(mat4x4 viewProjection);
@@ -23,6 +24,7 @@ private:
 	Room* room;
 
 	float rotation;
+	float wheelSteps[2];
 
 	vector<Geometry*> parts;
 	vector<Line*> bumpers;

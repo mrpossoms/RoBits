@@ -36,6 +36,7 @@ int main(int argc, const char* argv[])
 
 	// keep on running
 	while(1){
+		HAL_tick();
 		agentLoop();
 		nanosleep(&delay, NULL);
 	}

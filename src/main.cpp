@@ -13,21 +13,32 @@
 #include "environment/room.h"
 #include "environment/robit.h"
 
+Robit* robit;
+
 vec4 trail[1000];
 int trailIndex;
 float sampleTimer;
+
+void resetSim(GLFWwindow* win, int key, int scancode, int action, int mode)
+{
+	if(key == GLFW_KEY_R && robit){
+		robit->reset();
+	}
+}
 
 int main(int argc, char* argv[])
 {
 	vec2 size = { 800, 600 };
 	Renderer renderer(size);
 
+	glfwSetKeyCallback(renderer.window, resetSim);
+
 	srand(time(NULL));
 	bzero(trail, sizeof(trail));
 
 	int fd = open("./room.bin", O_RDONLY);
 	Room* room = new Room(fd);
-	Robit* robit = new Robit(room, 0xDEADBEEF);
+	robit = new Robit(room, 0xDEADBEEF);
 
 	close(fd);
 	float t = 0;
@@ -42,7 +53,7 @@ int main(int argc, char* argv[])
 		gettimeofday(&now, NULL);
 		double n = (double)now.tv_sec + ((double)now.tv_usec * 10.0e-6);
 		double l = (double)lastTime.tv_sec + ((double)lastTime.tv_usec * 10.0e-6);  
-		double dt = 0.2;//n - l;
+		double dt = 0.0001;//n - l;
 
 		robit->update(dt);
 

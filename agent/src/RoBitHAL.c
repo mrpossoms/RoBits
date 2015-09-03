@@ -1,18 +1,18 @@
 #include "agent.h"
 #include "RoBitHAL.h"
 #include <string.h>
+#include <math.h>
+
+static float orientation;
+static float position[2];
+
+#define ODO(wheel) ROBIT_STATE->odometer[(wheel)]
 
 // Sensors
-int HAL_readEncoder(int wheel, int flags)
+void HAL_positionEstimate(int16_t* coordinate)
 {
-	int reading = ROBIT_STATE->odometer[wheel];
-
-	// reset to get the next delta
-	if(flags & ROBIT_ENC_DELTA){
-		ROBIT_STATE->odometer[wheel] = 0;
-	}
-
-	return reading;
+	coordinate[0] = position[0] / 0.1;
+	coordinate[1] = position[1] / 0.1;
 }
 
 // returns a cardinal direction relative to the local coord sys
@@ -64,6 +64,24 @@ int HAL_sendData(struct RobitMessage* data)
 
 void HAL_tick()
 {
+	const float s2m = ROBIT_WHEEL_DIA / 12.0f;
+
+	// update the orientation
+	float mag = (ODO(ROBIT_WHEEL_RIGHT) + ODO(ROBIT_WHEEL_LEFT)) * s2m / 2;
+	orientation += (ODO(ROBIT_WHEEL_RIGHT) - ODO(ROBIT_WHEEL_LEFT)) * s2m / ROBIT_WHEELBASE;
+
+	// update the position
+	position[0] += mag * cos(orientation);
+	position[1] += mag * sin(orientation);
+
+	// reset the odo
+	if(ODO(ROBIT_WHEEL_RIGHT) || ODO(ROBIT_WHEEL_LEFT)){
+		printf("(%f %f)\n", position[0], position[1]);
+		printf("(%d %d) \n", ODO(ROBIT_WHEEL_LEFT), ODO(ROBIT_WHEEL_RIGHT));
+		ODO(ROBIT_WHEEL_RIGHT) = ODO(ROBIT_WHEEL_LEFT) = 0;
+	}
+	// printf("(%d %d)\n", ODO(ROBIT_WHEEL_RIGHT), ODO(ROBIT_WHEEL_LEFT));
+
 	if(ROBIT_STATE->rx.ok){
 		REC_DATA((struct RobitMessage*)ROBIT_STATE->rx.buf);
 		ROBIT_STATE->rx.ok = 0;

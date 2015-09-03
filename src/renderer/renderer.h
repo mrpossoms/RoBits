@@ -11,12 +11,11 @@ public:
 	~Renderer();
 
 	void stop();
-
 	int  shouldDraw();
 	void present();
-
 	float aspectRatio();
+
+	GLFWwindow* window;
 private:
 	int isRendering;
-	GLFWwindow* window;
 };

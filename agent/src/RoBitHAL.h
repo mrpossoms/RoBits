@@ -1,6 +1,8 @@
 #ifndef ROBIT_HAL
 #define ROBIT_HAL
 
+#include <inttypes.h>
+
 // Hardware
 #define ROBIT_MOTOR_MSK   0x0F
 #define ROBIT_WHEEL_LEFT  0x00
@@ -10,6 +12,9 @@
 #define ROBIT_WHEEL_FORWARD   0x30
 #define ROBIT_WHEEL_STOP      0x20
 #define ROBIT_WHEEL_BACKWARD  0x10
+
+#define ROBIT_WHEELBASE 0.15
+#define ROBIT_WHEEL_DIA 0.138
 
 // read the encoder difference since last read
 #define ROBIT_ENC_DELTA 0x01
@@ -34,7 +39,7 @@ struct RobitMessage{
 };
 
 // Sensors
-int HAL_readEncoder(int wheel, int flags);
+void HAL_positionEstimate(int16_t* coordinate);
 int HAL_readBumper(void); // returns a cardinal direction relative to the local coord sys
 int HAL_readVoltage(void);
 

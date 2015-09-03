@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define ROBIT_RAD 0.1f
+#define ROBIT_WHEEL_DIA 0.138
 
 static float WHEEL_BASE;
 
@@ -72,10 +73,15 @@ Robit::Robit(Room* r, uint32_t uid)
 
 	id = uid;
 	room = r;
+	reset();
+	// vec2_set(position, VEC2_ZERO);
+}
+
+void Robit::reset()
+{
 	rotation = RAND_F * M_PI * 2;
 	position[0] = 1;
 	position[1] = -0.5;
-	// vec2_set(position, VEC2_ZERO);
 }
 
 int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
@@ -88,8 +94,10 @@ int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
 	vec2_set(lastPosition, position);
 	lastRotation = rotation;
 
-	left  = left > 0 ? 64 : (left < 0 ? -64 : left);
-	right = right > 0 ? 64 : (right < 0 ? -64 : right);
+	left  = left > 0 ? 12 : (left < 0 ? -12 : left);
+	right = right > 0 ? 12 : (right < 0 ? -12 : right);
+
+	float translationDelta[2] = {};
 
 	// cir = 2πr
 	// arclen = θr
@@ -98,7 +106,7 @@ int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
 	{
 		vec2 leftWheel  = { cosf(rotation) * -radius, sinf(rotation) * -radius };
 
-		float lTheta = dt * (left / 2550.0f) / radius;
+		float lTheta = dt * (left) / radius;
 		float c = cosf(lTheta), s = sinf(lTheta);
 		vec2_add(leftWheel, leftWheel, position);
 		vec2_sub(oPrime, position, leftWheel);
@@ -107,13 +115,14 @@ int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
 		oTemp[1] = s * oPrime[0] + c * oPrime[1];
 
 		vec2_add(position, oTemp, leftWheel);
-		rotation += lTheta; 
+		rotation += lTheta;
+		translationDelta[0] = lTheta * radius;
 	}
 
 	{
 		vec2 rightWheel  = { cosf(rotation) * radius, sinf(rotation) * radius };
 
-		float rTheta = dt * (-right / 2550.0f) / radius;
+		float rTheta = dt * (-right) / radius;
 		float c = cosf(rTheta), s = sinf(rTheta);
 		vec2_add(rightWheel, rightWheel, position);
 		vec2_sub(oPrime, position, rightWheel);
@@ -123,6 +132,7 @@ int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
 
 		vec2_add(position, oPrime, rightWheel);
 		rotation += rTheta;
+		translationDelta[1] = -rTheta * radius;
 	}
 
 	if(isTouchingRoom()){
@@ -132,9 +142,20 @@ int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
 		return 1;
 	}
 	else{
-		state->odometer[MOTOR_LEFT]  += left;
-		state->odometer[MOTOR_RIGHT] += right;
+		// 12 steps per rotation.
+		wheelSteps[0] += translationDelta[0] * 12 / ROBIT_WHEEL_DIA;
+		wheelSteps[1] += translationDelta[1] * 12 / ROBIT_WHEEL_DIA;
 	}
+
+	// add accumulated steps to the integral
+	// odometer variable
+	for(int i = 2; i--;){
+		if(fabs(wheelSteps[i]) > 1){
+			state->odometer[MOTOR_LEFT + i]  += (int16_t)wheelSteps[i];
+			wheelSteps[i] -= (int16_t)wheelSteps[i];
+		}		
+	}
+
 
 	return 0;
 }
