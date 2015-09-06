@@ -38,13 +38,22 @@ struct RobitMessage{
 	byte data[256]; // generic data packet
 };
 
+struct Space{
+	uint8_t date;
+	uint8_t isPerimeter;
+};
+
 // Sensors
 void HAL_positionEstimate(int16_t* coordinate);
+
 int HAL_readBumper(void); // returns a cardinal direction relative to the local coord sys
 int HAL_readVoltage(void);
 
 // Mechanics
 int HAL_driveMotor(int flags); // bit flags with motor and direction or'ed together
+
+// Spatial
+struct Space HAL_sample(int16_t pos[2], struct Space* point);
 
 // Communications
 int HAL_setDataCallback(int (*onData)(struct RobitMessage*));

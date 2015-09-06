@@ -34,6 +34,7 @@ Line::Line(vec2 v1, vec2 v2, vec4 col)
 	vec2_set(vertices[0], v1);
 	vec2_set(vertices[1], v2);
 
+	vertices[0][2] = vertices[1][2] = 0;
 	vertices[0][3] = vertices[1][3] = 1.0f;
 
 	vec4_set(color, col);
@@ -221,7 +222,7 @@ int Line::intersectedByRay(ray2 ray, vec2 intersect, float* t)
 
 void Line::draw(mat4x4 viewProjection)
 {
-	vec4 temp;
+	vec4 temp = { 0, 0, 0, 1 };
 
 	glColor4f(color[0], color[1], color[2], color[3]);
 

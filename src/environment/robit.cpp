@@ -57,12 +57,13 @@ agent_t* Robit::attachShm(uint32_t key)
 {
 	int shmid = 0;
 	errno = 0;
+	printf("Agent mem %lu\n", sizeof(agent_t));
 	if ((shmid = shmget((key_t)key, sizeof(agent_t), IPC_CREAT | 0666)) < 0) {
-		perror("shmget");
+		printf("shmget\n");
 	}
 
 	if (errno) {
-        perror("shmat");
+        printf("shmat\n");
         assert(!errno);
     }
 
@@ -233,7 +234,7 @@ void Robit::update(float dt)
 	bzero(state->motor, sizeof(state->motor));
 }
 
-void Robit::draw(mat4x4 viewProjection)
+void Robit::draw(const mat4x4 viewProjection)
 {
 	mat4x4 model, temp;
 

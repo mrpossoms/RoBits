@@ -43,6 +43,17 @@ int HAL_driveMotor(int flags)
 	return 0;
 }
 
+struct Space HAL_sample(int16_t pos[2], struct Space* point)
+{
+	space_t res = mark(pos, (space_t*)point);
+	struct Space out;
+	
+	memcpy(&out, &res, sizeof(space_t));
+
+	return out;
+}
+
+
 // Communications
 static int (*REC_DATA)(struct RobitMessage*);
 int HAL_setDataCallback(int (*onData)(struct RobitMessage*))

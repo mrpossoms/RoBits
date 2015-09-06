@@ -17,7 +17,7 @@ public:
 	void reset();
 	int intersects(Geometry* geo, vec2 normal, float* t);
 	void update(float dt);
-	void draw(mat4x4 viewProjection);
+	void draw(const mat4x4 viewProjection);
 
 	vec2  position;
 private:
