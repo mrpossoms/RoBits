@@ -3,9 +3,9 @@ UNAME_S := $(shell uname -s)
 NAME=RoBits
 EDITOR=
 CC=g++ 
-AGENT_SRC=
-SRC=./src/*.cpp ./src/renderer/*.cpp ./src/renderer/geometry/*.cpp ./src/environment/*.cpp
-AGENT_INC=-I agent/include
+AGENT_SRC= 
+SRC=$(AGENT_SRC) ./src/*.cpp ./src/renderer/*.cpp ./src/renderer/geometry/*.cpp ./src/environment/*.cpp
+AGENT_INC=-I./agent/include -I./agent/src
 INC= $(AGENT_INC) -I./include -I./src -I./src/renderer -I /usr/local/include -I./src/environment
 DST=./lib
 

@@ -43,14 +43,40 @@ int HAL_driveMotor(int flags)
 	return 0;
 }
 
-struct Space HAL_sample(int16_t pos[2], struct Space* point)
+space_t HAL_sample(int16_t pos[2], space_t* point)
 {
-	space_t res = mark(pos, (space_t*)point);
-	struct Space out;
-	
-	memcpy(&out, &res, sizeof(space_t));
+	// update the min and max bounds of the sample spaces
+	if(pos[0] < ROBIT_STATE->spaceMin[0]){
+		ROBIT_STATE->spaceMin[0] = pos[0];
+		printf("update min[0] to %d\n", pos[0]);
+	}
+	if(pos[1] < ROBIT_STATE->spaceMin[1]){
+		ROBIT_STATE->spaceMin[1] = pos[1];
+		printf("update min[1] to %d\n", pos[1]);
+	}
 
-	return out;
+	if(pos[0] > ROBIT_STATE->spaceMax[0]){
+		ROBIT_STATE->spaceMax[0] = pos[0];
+	}
+	if(pos[1] > ROBIT_STATE->spaceMax[1]){
+		ROBIT_STATE->spaceMax[1] = pos[1];
+	}
+
+	int d = pos[0] - (pos[1] * 63);
+	int i = d - 4000 * floor(d / 4000.0f);
+
+	// get the old value and set the
+	// new one (TODO update with new info)
+	space_t ret = ROBIT_STATE->space[i];
+
+	if(point){
+		printf("%d\n", i);
+		printf("min: (%d, %d)\n", ROBIT_STATE->spaceMin[0], ROBIT_STATE->spaceMin[1]);
+		printf("max: (%d, %d)\n", ROBIT_STATE->spaceMax[0], ROBIT_STATE->spaceMax[1]);
+		ROBIT_STATE->space[i] = *point;
+	}
+
+	return ret;
 }
 
 

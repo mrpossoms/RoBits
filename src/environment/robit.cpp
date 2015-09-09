@@ -87,9 +87,12 @@ Robit::Robit(Room* r, uint32_t uid)
 
 void Robit::reset()
 {
-	rotation = RAND_F * M_PI * 2;
-	position[0] = 1;
-	position[1] = -0.5;
+	initialRotation = rotation = RAND_F * M_PI * 2;
+	initialPosition[0] = position[0] = 1;
+	initialPosition[1] = position[1] = -0.5;
+
+	state->spaceMin[0] = state->spaceMin[1] = 0;
+	state->spaceMax[0] = state->spaceMax[1] = 0;
 }
 
 int Robit::runMotors(int8_t left, int8_t right, uint8_t vac, float dt)
@@ -234,6 +237,24 @@ void Robit::update(float dt)
 	bzero(state->motor, sizeof(state->motor));
 }
 
+space_t sample(int16_t pos[2], space_t* point, agent_t* ROBIT_STATE)
+{
+	int d = pos[0] - (pos[1] * 63);
+	int i = d - (4000 * (int)(d / 4000.0f));
+
+	// get the old value and set the
+	// new one (TODO update with new info)
+	space_t ret;
+
+	memcpy(&ret, ROBIT_STATE->space + i, sizeof(space_t));
+
+	if(point){
+		memcpy(ROBIT_STATE->space + i, &ret, sizeof(space_t));
+	}
+
+	return ret;
+}
+
 void Robit::draw(const mat4x4 viewProjection)
 {
 	mat4x4 model, temp;
@@ -253,6 +274,40 @@ void Robit::draw(const mat4x4 viewProjection)
 
 	for(int i = bumpers.size(); i--;){
 		bumpers[i]->draw(temp);
+	}
+
+	glEnd();
+
+	glColor4f(0, 1, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+
+	mat4x4_identity(temp);
+	mat4x4_translate_in_place(temp, initialPosition[0], initialPosition[1], 0);
+	mat4x4_rotate_Z(model, temp, initialRotation);
+	mat4x4_mul(temp, viewProjection, model);
+
+	for(
+		int16_t pos[2] = { state->spaceMin[0] - 1, state->spaceMin[1] - 1 };
+		pos[0] <= state->spaceMax[0];
+		++pos[0])
+	{
+		for(; pos[1] <= state->spaceMin[1]; ++pos[1]){
+			space_t point = sample(pos, NULL, state);
+
+			if(!point.date) continue;
+
+			vec4 translated, localPos = { pos[0], pos[1], 0, 1 };
+			mat4x4_mul_vec4(translated, model, localPos);
+
+			if(point.isPerimeter){
+				glColor4f(1, 0, 0, 1);
+				glColor4f(0, 1, 0, 1);
+			}
+
+			glVertex2f(translated[0], translated[1]);
+
+		}
 	}
 
 	glEnd();

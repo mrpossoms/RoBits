@@ -565,7 +565,7 @@ static inline void mat4x4_scale_aniso(mat4x4 M, mat4x4 a, GLfloat x, GLfloat y, 
 	vec4_scale(M[1], a[1], y);
 	vec4_scale(M[2], a[2], z);
 }
-static inline void mat4x4_mul(mat4x4 M, mat4x4 a, mat4x4 b)
+static inline void mat4x4_mul(mat4x4 M, const mat4x4 a, const mat4x4 b)
 {
 	int k, r, c;
 	for(c=0; c<4; ++c) for(r=0; r<4; ++r) {

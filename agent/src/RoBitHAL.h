@@ -2,6 +2,7 @@
 #define ROBIT_HAL
 
 #include <inttypes.h>
+#include "agent.h"
 
 // Hardware
 #define ROBIT_MOTOR_MSK   0x0F
@@ -38,10 +39,7 @@ struct RobitMessage{
 	byte data[256]; // generic data packet
 };
 
-struct Space{
-	uint8_t date;
-	uint8_t isPerimeter;
-};
+#define ROBIT_MSG_TIME 0x0001
 
 // Sensors
 void HAL_positionEstimate(int16_t* coordinate);
@@ -53,7 +51,7 @@ int HAL_readVoltage(void);
 int HAL_driveMotor(int flags); // bit flags with motor and direction or'ed together
 
 // Spatial
-struct Space HAL_sample(int16_t pos[2], struct Space* point);
+space_t HAL_sample(int16_t pos[2], space_t* point);
 
 // Communications
 int HAL_setDataCallback(int (*onData)(struct RobitMessage*));

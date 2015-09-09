@@ -9,7 +9,6 @@
 #define MOTOR_VAC   2
 
 
-
 typedef struct{
 	uint8_t  buf[512]; // sim
 	uint16_t len;      // sim,
@@ -36,6 +35,5 @@ typedef struct{
 extern agent_t* ROBIT_STATE;
 
 void agentLoop(void);
-space_t mark(int16_t pos[2], space_t* point);
 
 #endif

@@ -13,23 +13,6 @@
 
 agent_t* ROBIT_STATE;
 
-space_t mark(int16_t pos[2], space_t* point)
-{
-
-	int d = pos[0] - (pos[1] * 63);
-	int i = d - (4000 * (int)(d / 4000.0f));
-
-	// get the old value and set the
-	// new one (TODO update with new info)
-	space_t ret = ROBIT_STATE->space[i];
-
-	if(point){
-		ROBIT_STATE->space[i] = *point;		
-	}
-
-	return ret;
-}
-
 int main(int argc, const char* argv[])
 {
 	if(argc != 2){

@@ -8,6 +8,8 @@
 #define DIR2IND(x) (((x) >> 4) - 1)
 #define IND2DIR(x) ((x + 1) << 4) 
 
+uint8_t TIME_NOW = 1;
+
 void permissibleStates(int** left, int** right, int bumper)
 {
 	const int normal[3] = { 1, 0, 1 };
@@ -61,14 +63,23 @@ int16_t lastPosition[2];
 void agentLoop(void)
 {
 	int16_t pos[2] = {};
+	int bumper = HAL_readBumper();
 
 	HAL_positionEstimate(pos);
+
 
 	if(lastPosition[0] != pos[0] || lastPosition[1] != pos[1]){
 		printf("agent -> (%d, %d)\n", pos[0], pos[1]);
 
 		lastPosition[0] = pos[0];
 		lastPosition[1] = pos[1];
+
+		space_t point = {
+			.date = TIME_NOW,
+			.isPerimeter = (uint8_t)bumper,
+		};
+
+		space_t last = HAL_sample(pos, &point);
 	}
 
 	HAL_driveMotor(ROBIT_WHEEL_LEFT  | ROBIT_WHEEL_FORWARD);

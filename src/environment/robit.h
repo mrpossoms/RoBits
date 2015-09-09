@@ -26,6 +26,9 @@ private:
 	float rotation;
 	float wheelSteps[2];
 
+	float initialRotation;
+	vec2  initialPosition;
+
 	vector<Geometry*> parts;
 	vector<Line*> bumpers;
 
