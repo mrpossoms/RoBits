@@ -91,6 +91,16 @@ void Robit::reset()
 	initialPosition[0] = position[0] = 1;
 	initialPosition[1] = position[1] = -0.5;
 
+	bzero(state->position, sizeof(state->position));
+	state->orientation = 0;
+
+	bzero(state->space, sizeof(space_t) * 4000);
+
+	for(int i = 4000; i--;){
+		state->space[i].date = 0;
+		state->space[i].isPerimeter = 0;
+	}
+
 	state->spaceMin[0] = state->spaceMin[1] = 0;
 	state->spaceMax[0] = state->spaceMax[1] = 0;
 }
@@ -240,16 +250,21 @@ void Robit::update(float dt)
 space_t sample(int16_t pos[2], space_t* point, agent_t* ROBIT_STATE)
 {
 	int d = pos[0] - (pos[1] * 63);
-	int i = d - (4000 * (int)(d / 4000.0f));
+	unsigned int i;
+
+	if(d >= 0){
+		i = d % 4000;
+	}
+	else{
+		i = d + 4000 * ceil(-d / 4000.0f);
+	}
 
 	// get the old value and set the
 	// new one (TODO update with new info)
-	space_t ret;
-
-	memcpy(&ret, ROBIT_STATE->space + i, sizeof(space_t));
+	space_t ret = ROBIT_STATE->space[i];
 
 	if(point){
-		memcpy(ROBIT_STATE->space + i, &ret, sizeof(space_t));
+		ROBIT_STATE->space[i] = *point;
 	}
 
 	return ret;
@@ -280,33 +295,33 @@ void Robit::draw(const mat4x4 viewProjection)
 
 	glColor4f(0, 1, 0, 1);
 	glPointSize(5);
-	glBegin(GL_POINTS);
-
+	
 	mat4x4_identity(temp);
 	mat4x4_translate_in_place(temp, initialPosition[0], initialPosition[1], 0);
 	mat4x4_rotate_Z(model, temp, initialRotation);
 	mat4x4_mul(temp, viewProjection, model);
 
-	for(
-		int16_t pos[2] = { state->spaceMin[0] - 1, state->spaceMin[1] - 1 };
-		pos[0] <= state->spaceMax[0];
-		++pos[0])
-	{
-		for(; pos[1] <= state->spaceMin[1]; ++pos[1]){
+	glBegin(GL_POINTS);
+
+	for(int16_t u = state->spaceMin[0]; u <= state->spaceMax[0]; ++u){
+		for(int16_t v = state->spaceMin[1]; v <= state->spaceMax[1]; ++v){
+			const float scale = 0.138 /** M_PI*/ / 2;
+			int16_t pos[2] = { u, v };
 			space_t point = sample(pos, NULL, state);
 
 			if(!point.date) continue;
 
-			vec4 translated, localPos = { pos[0], pos[1], 0, 1 };
-			mat4x4_mul_vec4(translated, model, localPos);
+			vec4 translated, localPos = { pos[0] * scale, pos[1] * scale, 0, 1 };
+			mat4x4_mul_vec4(translated, temp, localPos);
 
 			if(point.isPerimeter){
-				glColor4f(1, 0, 0, 1);
-				glColor4f(0, 1, 0, 1);
+				glColor3f(1, 0, 0);
+			}
+			else{
+				glColor3f(0, 1, 0);
 			}
 
 			glVertex2f(translated[0], translated[1]);
-
 		}
 	}
 

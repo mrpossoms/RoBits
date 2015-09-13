@@ -1,18 +1,19 @@
 #include "agent.h"
 #include "RoBitHAL.h"
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 
-static float orientation;
-static float position[2];
-
 #define ODO(wheel) ROBIT_STATE->odometer[(wheel)]
+#ifndef M_PI
+#define M_PI 3.14159265359
+#endif
 
 // Sensors
 void HAL_positionEstimate(int16_t* coordinate)
 {
-	coordinate[0] = position[0] / 0.1;
-	coordinate[1] = position[1] / 0.1;
+	coordinate[0] = ROBIT_STATE->position[0] / 0.1;
+	coordinate[1] = ROBIT_STATE->position[1] / 0.1;
 }
 
 // returns a cardinal direction relative to the local coord sys
@@ -63,7 +64,14 @@ space_t HAL_sample(int16_t pos[2], space_t* point)
 	}
 
 	int d = pos[0] - (pos[1] * 63);
-	int i = d - 4000 * floor(d / 4000.0f);
+	int i;
+
+	if(d >= 0){
+		i = d % 4000;
+	}
+	else{
+		i = d + 4000 * ceil(-d / 4000.0f);
+	}
 
 	// get the old value and set the
 	// new one (TODO update with new info)
@@ -74,6 +82,9 @@ space_t HAL_sample(int16_t pos[2], space_t* point)
 		printf("min: (%d, %d)\n", ROBIT_STATE->spaceMin[0], ROBIT_STATE->spaceMin[1]);
 		printf("max: (%d, %d)\n", ROBIT_STATE->spaceMax[0], ROBIT_STATE->spaceMax[1]);
 		ROBIT_STATE->space[i] = *point;
+
+		assert(ROBIT_STATE->space[i].date == point->date);
+		assert(ROBIT_STATE->space[i].isPerimeter == point->isPerimeter);
 	}
 
 	return ret;
@@ -101,15 +112,17 @@ int HAL_sendData(struct RobitMessage* data)
 
 void HAL_tick()
 {
-	const float s2m = ROBIT_WHEEL_DIA / 12.0f;
+	// s2m - distance in meters that a wheel transits
+	// for 1 / 12 of a rotation
+	const float s2m = M_PI * ROBIT_WHEEL_DIA / 12.0f;
 
 	// update the orientation
-	float mag = (ODO(ROBIT_WHEEL_RIGHT) + ODO(ROBIT_WHEEL_LEFT)) * s2m / 2;
-	orientation += (ODO(ROBIT_WHEEL_RIGHT) - ODO(ROBIT_WHEEL_LEFT)) * s2m / ROBIT_WHEELBASE;
+	float mag = (ODO(ROBIT_WHEEL_RIGHT) + ODO(ROBIT_WHEEL_LEFT)) * s2m;
+	ROBIT_STATE->orientation += (ODO(ROBIT_WHEEL_RIGHT) - ODO(ROBIT_WHEEL_LEFT)) * s2m / ROBIT_WHEELBASE;
 
 	// update the position
-	position[0] += mag * sin(orientation);
-	position[1] += mag * cos(orientation);
+	ROBIT_STATE->position[0] += mag * sin(ROBIT_STATE->orientation);
+	ROBIT_STATE->position[1] += mag * cos(ROBIT_STATE->orientation);
 
 	// reset the odo
 	if(ODO(ROBIT_WHEEL_RIGHT) || ODO(ROBIT_WHEEL_LEFT)){

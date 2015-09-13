@@ -20,6 +20,8 @@ int main(int argc, const char* argv[])
 		return 1;
 	}
 
+	printf("Agent mem %lu\n", sizeof(agent_t));
+
 	// attach to the shared memory segment
 	key_t uid = (key_t)strtoll(argv[1], NULL, 16);
 	int shmid = 0;
@@ -33,6 +35,9 @@ int main(int argc, const char* argv[])
 	struct timespec delay = {
 		0, 10000
 	};
+
+	// do any setup
+	agentSetup();
 
 	// keep on running
 	while(1){

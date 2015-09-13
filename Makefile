@@ -1,6 +1,6 @@
 UNAME_S := $(shell uname -s)
 
-NAME=RoBits
+NAME=Sim
 EDITOR=
 CC=g++ 
 AGENT_SRC= 

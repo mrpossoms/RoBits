@@ -59,6 +59,17 @@ void selectState(int* states, int* dir){
 }
 
 int16_t lastPosition[2];
+uint8_t firstUpdate = 1;
+
+void agentSetup(void)
+{
+	space_t point = {
+		.date = TIME_NOW,
+		.isPerimeter = 0,
+	};
+	
+	space_t last = HAL_sample(lastPosition, &point);
+}
 
 void agentLoop(void)
 {
@@ -68,9 +79,10 @@ void agentLoop(void)
 	HAL_positionEstimate(pos);
 
 
-	if(lastPosition[0] != pos[0] || lastPosition[1] != pos[1]){
+	if(lastPosition[0] != pos[0] || lastPosition[1] != pos[1] || bumper){
 		printf("agent -> (%d, %d)\n", pos[0], pos[1]);
 
+		firstUpdate = 0;
 		lastPosition[0] = pos[0];
 		lastPosition[1] = pos[1];
 
